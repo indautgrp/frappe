@@ -6,7 +6,7 @@ import frappe
 import os, base64, re
 import hashlib
 import mimetypes
-from frappe.utils import get_site_path, get_hook_method, get_files_path
+from frappe.utils import get_site_path, get_hook_method, get_files_path, random_string
 from frappe import _
 from frappe import conf
 from copy import copy
@@ -89,8 +89,16 @@ def extract_images_from_html(doc, fieldname):
 
 	def _save_file(match):
 		data = match.group(1)
+		data = data.split("data:")[1]
 		headers, content = data.split(",")
-		filename = headers.split("filename=")[-1]
+
+		if "filename=" in headers:
+			filename = headers.split("filename=")[-1]
+		else:
+			mtype = headers.split(";")[0]
+			extn = mimetypes.guess_extension(mtype)
+			filename = random_string(7) + extn
+
 		# TODO fix this
 		file_url = save_file(filename, content, doc.doctype, doc.name, decode=True).get("file_url")
 		if not frappe.flags.has_dataurl:
@@ -99,7 +107,7 @@ def extract_images_from_html(doc, fieldname):
 		return '<img src="{file_url}"'.format(file_url=file_url)
 
 	if content:
-		content = re.sub('<img\s*src=\s*["\'](data:[^"\']*)["\']', _save_file, content)
+		content = re.sub('<img\s*src=\s*["\'](?=data:)(.*?)["\']', _save_file, content)
 		if frappe.flags.has_dataurl:
 			doc.set(fieldname, content)
 
@@ -251,7 +259,7 @@ def get_content_hash(content):
 
 def get_file_name(fname, optional_suffix):
 	n_records = frappe.db.sql("select name from `tabFile Data` where file_name=%s", fname)
-	if len(n_records) > 0 or os.path.exists(get_files_path(fname.encode('utf-8'))):
+	if len(n_records) > 0 or os.path.exists(get_files_path(fname).encode('utf-8')):
 		f = fname.rsplit('.', 1)
 		if len(f) == 1:
 			partial, extn = f[0], ""

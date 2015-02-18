@@ -25,8 +25,9 @@ class Communication(Document):
 
 	def update_parent(self):
 		"""update status of parent Lead or Contact based on who is replying"""
-		parent_doc = self.get_parent_doc()
-		parent_doc.run_method("on_communication")
+		if self.parenttype and self.parent:
+			parent_doc = self.get_parent_doc()
+			parent_doc.run_method("on_communication")
 
 	def on_update(self):
 		self.update_parent()
@@ -36,7 +37,9 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	sender=None, recipients=None, communication_medium="Email", send_email=False,
 	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, set_lead=True, date=None):
 
-	if doctype and name and not frappe.has_permission(doctype, "email", name):
+	is_error_report = (doctype=="User" and name==frappe.session.user and subject=="Error Report")
+
+	if doctype and name and not is_error_report and not frappe.has_permission(doctype, "email", name):
 		raise frappe.PermissionError("You are not allowed to send emails related to: {doctype} {name}".format(
 			doctype=doctype, name=name))
 

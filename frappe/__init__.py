@@ -490,10 +490,11 @@ def setup_module_map():
 			_cache.set_value("module_app", local.module_app)
 
 def get_file_items(path, raise_not_found=False, ignore_empty_lines=True):
+	import frappe.utils
+
 	content = read_file(path, raise_not_found=raise_not_found)
 	if content:
-		# \ufeff is no-width-break, \u200b is no-width-space
-		content = content.replace("\ufeff", "").replace("\u200b", "").strip()
+		content = frappe.utils.strip(content)
 
 		return [p.strip() for p in content.splitlines() if (not ignore_empty_lines) or (p.strip() and not p.startswith("#"))]
 	else:
@@ -641,6 +642,8 @@ def format_value(value, df, doc=None, currency=None):
 
 def get_print_format(doctype, name, print_format=None, style=None, as_pdf=False):
 	from frappe.website.render import build_page
+	from frappe.utils.pdf import get_pdf
+
 	local.form_dict.doctype = doctype
 	local.form_dict.name = name
 	local.form_dict.format = print_format
@@ -649,14 +652,24 @@ def get_print_format(doctype, name, print_format=None, style=None, as_pdf=False)
 	html = build_page("print")
 
 	if as_pdf:
-		print_settings = db.get_singles_dict("Print Settings")
-		if int(print_settings.send_print_as_pdf or 0):
-			from utils.pdf import get_pdf
-			return get_pdf(html, {"page-size": print_settings.pdf_page_size})
-		else:
-			return html
+		return get_pdf(html)
 	else:
 		return html
+
+def attach_print(doctype, name, file_name):
+	from frappe.utils import scrub_urls
+
+	print_settings = db.get_singles_dict("Print Settings")
+	if int(print_settings.send_print_as_pdf or 0):
+		return {
+			"fname": file_name + ".pdf",
+			"fcontent": get_print_format(doctype, name, as_pdf=True)
+		}
+	else:
+		return {
+			"fname": file_name + ".html",
+			"fcontent": scrub_urls(get_print_format(doctype, name)).encode("utf-8")
+		}
 
 logging_setup_complete = False
 def get_logger(module=None):

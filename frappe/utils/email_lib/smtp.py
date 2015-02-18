@@ -15,6 +15,8 @@ def send(email, as_bulk=False):
 		frappe.msgprint(_("Emails are muted"))
 		return
 
+	email.validate()
+
 	try:
 		smtpserver = SMTPServer()
 		if hasattr(smtpserver, "always_use_login_id_as_sender") and \
@@ -23,7 +25,8 @@ def send(email, as_bulk=False):
 				email.reply_to = email.sender
 			email.sender = smtpserver.login
 
-		smtpserver.sess.sendmail(email.sender, email.recipients + (email.cc or []),
+		smtpserver.sess.sendmail(email.sender.encode("utf-8"),
+			[e.encode("utf-8") for e in (email.recipients + (email.cc or []))],
 			email.as_string())
 
 	except smtplib.SMTPSenderRefused:
