@@ -270,6 +270,10 @@ frappe.ui.form.Grid = Class.extend({
 			data.push([]);
 			data.push([]);
 			data.push([]);
+			if (me.df.options=='Stock Reconciliation Item'){
+			    data.push([]);
+			    data[4].push("","","","Valuation Rate cannot include any character like $, make sure it's a number.");
+			}
 			data.push(["------"]);
 			$.each(frappe.get_meta(me.df.options).fields, function(i, df) {
 				if(frappe.model.is_value_type(df.fieldtype)) {
