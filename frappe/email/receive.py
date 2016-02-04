@@ -219,6 +219,7 @@ class Email:
 
 	def parse(self):
 		"""Walk and process multi-part email."""
+		last = [""]*2
 		for part in self.mail.walk():
 			self.process_part(part)
 
@@ -249,6 +250,10 @@ class Email:
 		charset = part.get_content_charset()
 		if not charset: charset = self.get_charset(part)
 
+		if content_type == 'message/rfc822' or last[0] == 'message/rfc822': #test to see if within a attached message
+			if self.get_message_headers_html(part): #check and get for email headers returns true if the headers not found
+				last[1] = True # catch to keep within attached message
+				
 		if content_type == 'text/plain':
 			self.text_content += self.get_payload(part, charset)
 
@@ -257,6 +262,42 @@ class Email:
 
 		if part.get_filename():
 			self.get_attachment(part, charset)
+
+		if last[0] == 'message/rfc822' and content_type == 'text/plain':
+			self.html_content += '<p>'+self.get_payload(part, charset)+'</p>'
+			last[1] == False
+
+		if last[1] == True:	#keep withing attached message until the email text/plain is found
+			last[0] ='message/rfc822'
+		else:
+			last[0]=content_type
+
+
+	def get_message_headers_html(self,part):
+		list=[""]*4
+		list[0]=part.__getitem__('from')
+		list[1]=part.__getitem__('to')
+		list[3]=part.__getitem__('subject')
+
+		list[2] = str(part)[:str(part).find('\n')] #time send is not stored in header but in the part as a string so pull out the first line of text
+		if list[2].index("From nobody")==0:
+			list[2] = list[2][11:] # remove From nobody
+		else:
+			return True
+		if "" in list:
+			return True
+		self.html_content +=  '<hr>'
+		list[0] = list[0][list[0].find("<")+1:list[0].find(">")]#From: cleaner
+
+		temp =""#To: cleaner
+		for d in list[1].split(','):
+			temp += d[d.find("<")+1:d.find(">")] +','
+		list[1] = temp.strip(',')
+
+
+		self.text_content +=   'From: {0}\nTo: {1}\nSent: {2}\nSubject: {3}\n'.format(list[0],list[1],list[2],list[3])
+		self.html_content +=   '<p>From: {0}</p><p>To: {1}</p><p>Sent: {2}</p><p>Subject: {3}</p><br>'.format(list[0],list[1],list[2],list[3])
+		return False
 
 	def get_charset(self, part):
 		"""Detect chartset."""
