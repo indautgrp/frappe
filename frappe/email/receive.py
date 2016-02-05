@@ -219,7 +219,7 @@ class Email:
 
 	def parse(self):
 		"""Walk and process multi-part email."""
-		last=False
+		last=[False]
 		for part in self.mail.walk():
 			self.process_part(part,last)
 
@@ -250,11 +250,11 @@ class Email:
 		charset = part.get_content_charset()
 		if not charset: charset = self.get_charset(part)
 
-		if content_type == 'message/rfc822' or last == True: #test to see if within a attached message
+		if content_type == 'message/rfc822' or last[0] == True: #test to see if within a attached message
 			if self.get_attached_message(part): #check and get for email headers
-				last =False
+				last[0] = False
 			else:
-				last = True # within attached message headers not found repeat within message
+				last[0] = True # within attached message headers not found repeat within message
 				
 		if content_type == 'text/plain':
 			self.text_content += self.get_payload(part, charset)
