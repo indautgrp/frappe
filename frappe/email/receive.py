@@ -244,7 +244,7 @@ class Email:
 		else:
 			self.content, self.content_type = EmailReplyParser.parse_reply(self.text_content), 'text/plain'
 
-		def process_part(self, part,last):
+	def process_part(self, part,last):
 		"""Parse email `part` and set it to `text_content`, `html_content` or `attachments`."""
 		content_type = part.get_content_type()
 		charset = part.get_content_charset()
