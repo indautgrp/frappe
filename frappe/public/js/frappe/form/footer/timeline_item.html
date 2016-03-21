@@ -46,7 +46,10 @@
 						{% if (frappe.model.can_read(\'Communication\')) { %}
 						</a>
 						{% } %}
-
+						
+						<a class="text-muted relink-link"
+                            data-name="{%= data.name %}"> - {%= __("Relink") %}</a>
+							
 						<a class="text-muted reply-link pull-right"
                             data-name="{%= data.name %}">{%= __("Reply") %}</a>
                     {% } %}
