@@ -8,7 +8,6 @@ from frappe import _
 from frappe.model.document import Document
 
 class CommunicationReconciliation(Document):
-	#@frappe.whitelist()
 	def fetch(self):
 		dt = self.reference_doctype
 		dn = self.reference_name
@@ -42,16 +41,11 @@ class CommunicationReconciliation(Document):
 			
 		return self
 
-
-	#@frappe.whitelist()
-	def relink_bulk(self,changed_list):#self,change
+	def relink_bulk(self,changed_list):
 		for comm in changed_list:
 			frappe.db.sql("""update `tabCommunication`
 			set reference_doctype = %s ,reference_name = %s ,status = "Linked"
 			where name = %s """,(changed_list[comm]["reference_doctype"],changed_list[comm]["reference_name"],changed_list[comm]["name"]))
-			#frappe.db.set_value("Communication",changed_list[comm]["name"],"reference_doctype",changed_list[comm]["reference_doctype"])
-			#frappe.db.set_value("Communication",changed_list[comm]["name"],"reference_name",changed_list[comm]["reference_name"])
-			#frappe.db.set_value("Communication",changed_list[comm]["name"],"status","Linked")
 		return self.fetch()
 
 @frappe.whitelist()
@@ -59,7 +53,7 @@ def relink(name,reference_doctype,reference_name):
 		dt = reference_doctype
 		dn = reference_name
 		if dt=="" or dt==None or dn == "" or dn == None:
-			return # is blank maybe try flash missing required
+			return 
 		frappe.db.sql("""update `tabCommunication`
 			set reference_doctype = %s ,reference_name = %s ,status = "Linked"
 			where name = %s """,(dt,dn,name))
