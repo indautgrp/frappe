@@ -199,6 +199,7 @@ class EmailAccount(Document):
 			# gmail shows sent emails in inbox
 			# and we don't want emails sent by us to be pulled back into the system again
 			raise SentEmailInInbox
+		contact = self.set_customer_supplier(email)
 
 		communication = frappe.get_doc({
 			"doctype": "Communication",
@@ -210,7 +211,9 @@ class EmailAccount(Document):
 			"recipients": email.mail.get("To"),
 			"cc": email.mail.get("CC"),
 			"email_account": self.name,
-			"communication_medium": "Email"
+			"communication_medium": "Email",
+			"supplier":contact["supplier"],
+			"customer":contact["customer"]
 		})
 
 		self.set_thread(communication, email)
@@ -237,6 +240,52 @@ class EmailAccount(Document):
 			self.send_auto_reply(communication, email)
 
 		return communication
+
+	def set_customer_supplier(self,email):
+		origin_contact = frappe.db.sql("select email_id,supplier,customer,user from `tabContact`",as_dict=1)
+		origin_communication = [{"sender": email.from_email,
+			"recipients": email.mail.get("To"),}]
+
+		contact = []
+		communication = []
+
+		#format contacts
+		for comm in origin_contact:
+			if (comm["user"]==None):
+				temp = {}
+				temp["email_id"] = comm["email_id"]
+				temp["supplier"] = comm["supplier"]
+				temp["customer"] = comm["customer"]
+				contact.append(temp)
+
+		#format sender
+		for comm in origin_communication:
+			temp = {}
+			if comm["sender"] is not None and comm["sender"]!="":
+				if comm["sender"].find("<")>-1:
+					temp["email"] = comm["sender"][comm["sender"].find("<")+1:comm["sender"].find(">")].lower() #not sure if lower needed
+				else:
+					temp["email"] = comm["sender"]
+				communication.append(temp)
+
+
+		#format reciepient
+		for comm in origin_communication:
+			if comm["recipients"] is not None and comm["recipients"]!="":
+				for r in comm["recipients"].split(','):
+					temp = {}
+					temp["email"] =r.lower() #not sure if lower needed
+					communication.append(temp)
+
+		for comm in communication:
+			for tact in contact:
+				#check each item and submit
+				if tact["email_id"]==comm["email"]:
+					if tact["supplier"]is not None:
+						return {"supplier":tact["supplier"],"customer": None}
+					elif tact["customer"]is not None:
+						return {"supplier":None,"customer":tact["customer"]}
+		return {"supplier":None,"customer": None}
 
 	def set_thread(self, communication, email):
 		"""Appends communication to parent based on thread ID. Will extract
