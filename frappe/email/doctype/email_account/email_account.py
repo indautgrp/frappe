@@ -242,50 +242,24 @@ class EmailAccount(Document):
 		return communication
 
 	def set_customer_supplier(self,email):
+		def set_customer_supplier(self,email):
 		origin_contact = frappe.db.sql("select email_id,supplier,customer,user from `tabContact`",as_dict=1)
-		origin_communication = [{"sender": email.from_email,
-			"recipients": email.mail.get("To"),}]
 
-		contact = []
-		communication = []
-
-		#format contacts
+		sender = email.from_email
+		recipients = email.mail.get("To")
 		for comm in origin_contact:
-			if (comm["user"]==None):
-				temp = {}
-				temp["email_id"] = comm["email_id"]
-				temp["supplier"] = comm["supplier"]
-				temp["customer"] = comm["customer"]
-				contact.append(temp)
+			if comm["user"] is None and comm["email_id"]:
+				if (sender and sender.find(comm["email_id"]) > -1) or (
+					recipients and recipients.find(comm["email_id"]) > -1):
+					if comm["supplier"] and comm["customer"]:
+						return {"supplier": comm["supplier"], "customer": comm["customer"]}
 
-		#format sender
-		for comm in origin_communication:
-			temp = {}
-			if comm["sender"] is not None and comm["sender"]!="":
-				if comm["sender"].find("<")>-1:
-					temp["email"] = comm["sender"][comm["sender"].find("<")+1:comm["sender"].find(">")].lower() #not sure if lower needed
-				else:
-					temp["email"] = comm["sender"]
-				communication.append(temp)
+					elif comm["supplier"]:
+						return {"supplier": comm["supplier"], "customer": None}
 
-
-		#format reciepient
-		for comm in origin_communication:
-			if comm["recipients"] is not None and comm["recipients"]!="":
-				for r in comm["recipients"].split(','):
-					temp = {}
-					temp["email"] =r.lower() #not sure if lower needed
-					communication.append(temp)
-
-		for comm in communication:
-			for tact in contact:
-				#check each item and submit
-				if tact["email_id"]==comm["email"]:
-					if tact["supplier"]is not None:
-						return {"supplier":tact["supplier"],"customer": None}
-					elif tact["customer"]is not None:
-						return {"supplier":None,"customer":tact["customer"]}
-		return {"supplier":None,"customer": None}
+					elif comm["customer"]:
+						return {"supplier": None, "customer": comm["customer"]}
+		return {"supplier": None, "customer": None}
 
 	def set_thread(self, communication, email):
 		"""Appends communication to parent based on thread ID. Will extract
