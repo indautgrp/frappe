@@ -1,8 +1,14 @@
-function showhidden(){
+frappe.provide('frappe.communication_reconciliation')
+frappe.communication_reconciliation.showhidden = function(){
 	$(".hide-control").removeClass("hide-control")
 }
 frappe.ui.form.on("Communication Reconciliation", {
-    refresh: function(frm) {
+	onload: function(frm){
+		var method = "frappe.desk.doctype.communication_reconciliation.communication_reconciliation.get_communication_doctype";
+		cur_frm.get_field("reference_doctype").get_query = frappe.communication_reconciliation.method;
+		cur_frm.fields_dict["communication_list"].grid.get_field("reference_doctype").get_query = frappe.communication_reconciliation.method;
+	},
+    	refresh: function(frm) {
 		setTimeout(showhidden, 1)
 		frm.disable_save();
 	},
@@ -74,7 +80,3 @@ frappe.ui.form.on("Communication Reconciliation item", {
 		}
 	}
 })
-var method = "frappe.desk.doctype.communication_reconciliation.communication_reconciliation.get_communication_doctype";
-cur_frm.get_field("reference_doctype").get_query = method;
-cur_frm.fields_dict["communication_list"].grid.get_field("reference_doctype").get_query = method;
-
