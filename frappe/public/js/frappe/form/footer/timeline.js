@@ -84,6 +84,7 @@ frappe.ui.form.Comments = Class.extend({
 		if(c.comment_type==="Email") {
 			this.last_type = c.comment_type;
 			this.add_reply_btn_event($timeline_item, c);
+			this.add_relink_btn_event($timeline_item, c);
 		}
 
 	},
@@ -111,7 +112,68 @@ frappe.ui.form.Comments = Class.extend({
 			});
 		});
 	},
+	add_relink_btn_event: function($timeline_item, c) {
+		var me = this;
+		$timeline_item.find(".relink-link").on("click", function() {
+			var name = $(this).attr("data-name");
+			var lib ="frappe.desk.doctype.communication_reconciliation.communication_reconciliation"
+			var d = new frappe.ui.Dialog({
+				title: __("Relink Communication"),
+				fields: [{
+                            "fieldtype": "Link",
+                            "options": "DocType",
+                            "label": __("Reference Doctype"),
+					"name":"reference_doctype",
+					"reqd": 1,
+					"get_query": function() {
+					return {
+						query: lib+".get_communication_doctype"
+						}
+					}
+                        },
+                        {
+	                	"fieldtype": "Dynamic Link",
+	                	"options": "reference_doctype",
+	                	"label": __("Reference Name"),
+	                	"reqd": 1,
+				"name":"reference_name"
+                        },
+                        {
+                        	"fieldtype": "Button",
+                        	"label": __("Relink")
+						}]
+			});
+			d.set_value("reference_doctype",cur_frm.doctype)
+			d.set_value("reference_name",cur_frm.docname)
+			d.get_input("relink").on("click", function(frm) {
+				values = d.get_values()
+                		if (values) {
+					frappe.confirm(
+    					'Are you sure you want to relink this communication to '+d.get_value("reference_name")+'?',
+    					function(){
+					frappe.call({
+						method: lib+".relink",
+						args: {
+							"name": name,
+							"reference_doctype": d.get_value("reference_doctype"),
+							"reference_name": d.get_value("reference_name")
+						},
 
+						callback: function (frm) {
+							$timeline_item.hide()
+							d.hide();
+							return false;
+						}})
+							},
+							function(){
+								show_alert('Document not Relinked')
+						})
+                		}
+			});
+			d.show();
+		});
+
+	},
 	prepare_comment: function(c) {
 		if((c.comment_type || "Comment") === "Comment" && frappe.model.can_delete("Comment")) {
 			c["delete"] = '<a class="close" href="#"><i class="octicon octicon-trashcan"></i></a>';
@@ -416,7 +478,6 @@ frappe.ui.form.Comments = Class.extend({
 
 	setup_textarea_event: function() {
 		var me = this;
-
 		// binding this in keyup to get the value after it is set in textarea
 		this.input.keyup(function(e) {
 			if (e.which===16) {
