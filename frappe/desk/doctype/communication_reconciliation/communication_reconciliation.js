@@ -9,7 +9,7 @@ frappe.ui.form.on("Communication Reconciliation", {
 		cur_frm.fields_dict["communication_list"].grid.get_field("reference_doctype").get_query = frappe.communication_reconciliation.method;
 	},
     	refresh: function(frm) {
-		setTimeout(showhidden, 1)
+		setTimeout(frappe.communication_reconciliation.showhidden, 1)
 		frm.disable_save();
 	},
 	fetch: function(frm) {
