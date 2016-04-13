@@ -7,6 +7,23 @@ import frappe
 from frappe.email.email_body import get_email
 from frappe.email.smtp import send
 
+def set_customer_supplier(sender,recipients):
+	origin_contact = frappe.db.sql("select email_id,supplier,customer,user from `tabContact`",as_dict=1)
+
+	for comm in origin_contact:
+		if comm["user"] is None and comm["email_id"]:
+			if (sender and sender.find(comm["email_id"]) > -1) or (
+				recipients and recipients.find(comm["email_id"]) > -1):
+				if comm["supplier"] and comm["customer"]:
+					return {"supplier": comm["supplier"], "customer": comm["customer"]}
+
+				elif comm["supplier"]:
+					return {"supplier": comm["supplier"], "customer": None}
+
+				elif comm["customer"]:
+					return {"supplier": None, "customer": comm["customer"]}
+	return {"supplier": None, "customer": None}
+
 def sendmail_md(recipients, sender=None, msg=None, subject=None, attachments=None, content=None,
 	reply_to=None, cc=(), message_id=None):
 	"""send markdown email"""
