@@ -260,6 +260,7 @@ class Email:
 		self.set_content_and_type()
 		self.set_subject()
 
+		self.from_email = extract_email_id(self.mail["From"])
 		if self.from_email:
 			self.from_email = self.from_email.lower()
 		self.from_real_name = email.utils.parseaddr(self.mail["From"])[0]
