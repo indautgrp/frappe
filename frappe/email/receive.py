@@ -260,8 +260,10 @@ class Email:
 		self.set_content_and_type()
 		self.set_subject()
 
-		self.from_email = extract_email_id(self.mail["From"])
+		self.from_email = extract_email_id(self.mail["From"]).lower()
 		self.from_real_name = email.utils.parseaddr(self.mail["From"])[0]
+		self.To = self.mail.get("To").lower()
+		self.CC = self.mail.get("CC").lower()
 
 		if self.mail["Date"]:
 			utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))
