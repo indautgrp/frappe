@@ -432,7 +432,7 @@ frappe.views.QueryReport = Class.extend({
 			}
 
 			// set collapsed if initial depth is specified
-			if (initial_depth && item.indent && item.indent==(initial_depth - 1)) {
+			if (initial_depth && item.indent && item.indent >=(initial_depth - 1)) {
 				item._collapsed = true;
 			}
 		}
