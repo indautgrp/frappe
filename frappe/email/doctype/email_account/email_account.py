@@ -207,8 +207,8 @@ class EmailAccount(Document):
 			"content": email.content,
 			"sent_or_received": "Received",
 			"sender_full_name": email.from_real_name,
-			"sender": email.from_email,
-			"recipients": email.mail.get("To"),
+			"sender": email.from_email.lower(),
+			"recipients": email.mail.get("To").lower(),
 			"cc": email.mail.get("CC"),
 			"email_account": self.name,
 			"communication_medium": "Email",
@@ -242,7 +242,6 @@ class EmailAccount(Document):
 		return communication
 
 	def set_customer_supplier(self,email):
-		def set_customer_supplier(self,email):
 		origin_contact = frappe.db.sql("select email_id,supplier,customer,user from `tabContact`",as_dict=1)
 
 		sender = email.from_email
