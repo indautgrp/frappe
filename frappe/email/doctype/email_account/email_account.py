@@ -18,6 +18,7 @@ from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
 from frappe.desk.form import assign_to
 from frappe.utils.user import get_system_managers
+from frappe.email import set_customer_supplier
 
 class SentEmailInInbox(Exception): pass
 
@@ -199,7 +200,7 @@ class EmailAccount(Document):
 			# gmail shows sent emails in inbox
 			# and we don't want emails sent by us to be pulled back into the system again
 			raise SentEmailInInbox
-		contact = self.set_customer_supplier(email.from_email,email.To)
+		contact = set_customer_supplier(email.from_email,email.To)
 
 		communication = frappe.get_doc({
 			"doctype": "Communication",
@@ -240,22 +241,6 @@ class EmailAccount(Document):
 			self.send_auto_reply(communication, email)
 
 		return communication
-
-	def set_customer_supplier(self,sender,recipients):
-		origin_contact = frappe.db.sql("select email_id,supplier,customer,user from `tabContact`",as_dict=1)
-		for comm in origin_contact:
-			if comm["user"] is None and comm["email_id"]:
-				if (sender and sender.find(comm["email_id"]) > -1) or (
-					recipients and recipients.find(comm["email_id"]) > -1):
-					if comm["supplier"] and comm["customer"]:
-						return {"supplier": comm["supplier"], "customer": comm["customer"]}
-
-					elif comm["supplier"]:
-						return {"supplier": comm["supplier"], "customer": None}
-
-					elif comm["customer"]:
-						return {"supplier": None, "customer": comm["customer"]}
-		return {"supplier": None, "customer": None}
 
 	def set_thread(self, communication, email):
 		"""Appends communication to parent based on thread ID. Will extract
