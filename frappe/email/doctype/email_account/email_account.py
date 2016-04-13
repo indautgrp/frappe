@@ -199,7 +199,7 @@ class EmailAccount(Document):
 			# gmail shows sent emails in inbox
 			# and we don't want emails sent by us to be pulled back into the system again
 			raise SentEmailInInbox
-		contact = self.set_customer_supplier(email)
+		contact = self.set_customer_supplier(email.from_email,email.To)
 
 		communication = frappe.get_doc({
 			"doctype": "Communication",
@@ -241,11 +241,8 @@ class EmailAccount(Document):
 
 		return communication
 
-	def set_customer_supplier(self,email):
+	def set_customer_supplier(self,sender,recipients):
 		origin_contact = frappe.db.sql("select email_id,supplier,customer,user from `tabContact`",as_dict=1)
-
-		sender = email.from_email
-		recipients = email.mail.get("To")
 		for comm in origin_contact:
 			if comm["user"] is None and comm["email_id"]:
 				if (sender and sender.find(comm["email_id"]) > -1) or (
