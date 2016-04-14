@@ -11,6 +11,7 @@ from frappe.email.bulk import check_bulk_limit
 import frappe.email.smtp
 from frappe import _
 from frappe.model.db_schema import add_column
+from frappe.email import set_customer_supplier
 
 from frappe.model.document import Document
 
@@ -366,7 +367,8 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 
 	if not sender:
 		sender = get_formatted_email(frappe.session.user)
-
+		
+	contact = set_customer_supplier(sender,recipients)
 	comm = frappe.get_doc({
 		"doctype":"Communication",
 		"subject": subject,
@@ -377,7 +379,9 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"communication_medium": communication_medium,
 		"sent_or_received": sent_or_received,
 		"reference_doctype": doctype,
-		"reference_name": name
+		"reference_name": name,
+		"supplier":contact["supplier"],
+		"customer":contact["customer"]
 	})
 	comm.insert(ignore_permissions=True)
 
