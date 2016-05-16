@@ -44,9 +44,34 @@ class CommunicationReconciliation(Document):
 
 	def relink_bulk(self,changed_list):
 		for comm in changed_list:
+			
+			original_reference_doctype=frappe.db.get_value("Communication",changed_list[comm]["name"],"reference_doctype")
+			original_reference_name=frappe.db.get_value("Communication",changed_list[comm]["name"],"reference_name")
+			communication_medium=frappe.db.get_value("Communication",changed_list[comm]["name"],"communication_medium")
+			subject=frappe.db.get_value("Communication",changed_list[comm]["name"],"subject")
+			subject_link = '<a href="/desk#Form/Communication/' + changed_list[comm]["name"] +'" target="_blank">' + subject
+			content= 'Relinked ' + communication_medium + ' ' + subject_link + '</a>'
+
+			if original_reference_doctype:
+				from_link = '<a href="/desk#Form/' + original_reference_doctype +'/'+ original_reference_name +'" target="_blank">'
+				content += ' from ' + from_link + original_reference_doctype+' '+original_reference_name+'</a>'
+			
 			frappe.db.sql("""update `tabCommunication`
 			set reference_doctype = %s ,reference_name = %s ,status = "Linked"
 			where name = %s """,(changed_list[comm]["reference_doctype"],changed_list[comm]["reference_name"],changed_list[comm]["name"]))
+		
+			comm = frappe.get_doc({
+				"doctype": "Communication",
+				"communication_type": "Comment",
+				"comment_type": "Relinked",
+				"reference_doctype": changed_list[comm]["reference_doctype"],
+				"reference_name": changed_list[comm]["reference_name"],
+				"subject": subject,
+				"communication_medium": communication_medium,
+				"reference_owner": frappe.db.get_value(changed_list[comm]["reference_doctype"], changed_list[comm]["reference_name"], "owner"),
+				"content": content
+			}).insert(ignore_permissions=True)
+
 		return self.fetch()
 
 @frappe.whitelist()
@@ -55,9 +80,33 @@ def relink(name,reference_doctype,reference_name):
 		dn = reference_name
 		if dt=="" or dt==None or dn == "" or dn == None:
 			return 
+
+		original_reference_doctype=frappe.db.get_value("Communication",name,"reference_doctype")
+		original_reference_name=frappe.db.get_value("Communication",name,"reference_name")
+		communication_medium=frappe.db.get_value("Communication",name,"communication_medium")
+		subject=frappe.db.get_value("Communication",name,"subject")
+		subject_link = '<a href="/desk#Form/Communication/' + name +'" target="_blank">' + subject
+		content= 'Relinked ' + communication_medium + ' ' + subject_link + '</a>'
+
+		if original_reference_doctype:
+			from_link = '<a href="/desk#Form/' + original_reference_doctype +'/'+ original_reference_name +'" target="_blank">'
+			content += ' from ' + from_link + original_reference_doctype+' '+original_reference_name+'</a>'
+
 		frappe.db.sql("""update `tabCommunication`
 			set reference_doctype = %s ,reference_name = %s ,status = "Linked"
 			where name = %s """,(dt,dn,name))
+		
+		frappe.get_doc({
+				"doctype": "Communication",
+				"communication_type": "Comment",
+				"comment_type": "Relinked",
+				"reference_doctype": dt,
+				"reference_name": dn,
+				"subject": subject,
+				"communication_medium": frappe.db.get_value("Communication",name,"communication_medium"),
+				"reference_owner": frappe.db.get_value(dt, dn, "owner"),
+				"content": content
+			}).insert(ignore_permissions=True)
 
 def get_communication_doctype(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_match_cond
