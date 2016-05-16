@@ -293,7 +293,7 @@ frappe.ui.form.Timeline = Class.extend({
 	},
 
 	is_communication_or_comment: function(c) {
-		return c.communication_type==="Communication" || (c.communication_type==="Comment" && c.comment_type==="Comment");
+		return c.communication_type==="Communication" || (c.communication_type==="Comment" && (c.comment_type==="Comment"||c.comment_type==="Relinked"));
 	},
 
 	set_icon_and_color: function(c) {
@@ -314,7 +314,8 @@ frappe.ui.form.Timeline = Class.extend({
 			"Attachment Removed": "octicon octicon-trashcan",
 			"Shared": "octicon octicon-eye",
 			"Unshared": "octicon octicon-circle-slash",
-			"Like": "octicon octicon-heart"
+			"Like": "octicon octicon-heart",
+			"Relinked": "octicon octicon-check"
 		}[c.comment_type || c.communication_medium]
 
 		c.color = {
@@ -331,7 +332,8 @@ frappe.ui.form.Timeline = Class.extend({
 			"Workflow": "#2c3e50",
 			"Label": "#2c3e50",
 			"Attachment": "#7f8c8d",
-			"Attachment Removed": "#eee"
+			"Attachment Removed": "#eee",
+			"Relinked": "#16a085"
 		}[c.comment_type || c.communication_medium];
 
 		c.icon_fg = {
