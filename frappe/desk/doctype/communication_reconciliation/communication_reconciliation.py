@@ -61,9 +61,10 @@ class CommunicationReconciliation(Document):
 			where name = %s """,(changed_list[comm]["reference_doctype"],changed_list[comm]["reference_name"],changed_list[comm]["name"]))
 
 			doc = frappe.get_doc("Communication", changed_list[comm]["name"])
-			doc.timeline_doctype = None
-			doc.timeline_name = None
-			doc.save()
+			if not doc.timeline_label:
+				doc.timeline_doctype = None
+				doc.timeline_name = None
+				doc.save()
 
 			comm = frappe.get_doc({
 				"doctype": "Communication",
@@ -102,9 +103,10 @@ def relink(name,reference_doctype,reference_name):
 			where name = %s """,(dt,dn,name))
 
 		doc = frappe.get_doc("Communication", name)
-		doc.timeline_doctype = None
-		doc.timeline_name = None
-		doc.save()
+		if not doc.timeline_label:
+			doc.timeline_doctype = None
+			doc.timeline_name = None
+			doc.save()
 
 		frappe.get_doc({
 				"doctype": "Communication",
