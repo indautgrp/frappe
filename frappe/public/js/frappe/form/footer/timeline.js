@@ -187,15 +187,11 @@ frappe.ui.form.Timeline = Class.extend({
 	                	"label": __("Reference Name"),
 	                	"reqd": 1,
 				"name":"reference_name"
-                        },
-                        {
-                        	"fieldtype": "Button",
-                        	"label": __("Relink")
-						}]
+                        }]
 			});
 			d.set_value("reference_doctype",cur_frm.doctype)
 			d.set_value("reference_name",cur_frm.docname)
-			d.get_input("relink").on("click", function(frm) {
+			d.set_primary_action(__("Relink"), function() {
 				values = d.get_values()
                 		if (values) {
 					frappe.confirm(
