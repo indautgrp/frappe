@@ -14,6 +14,7 @@ def execute(filters=None):
 
 	columns, fields = get_columns_and_fields(doctype)
 	data = frappe.get_list(doctype, fields=fields, as_list=True, user=user)
+	
 	if show_permissions:
 		columns = columns + ["Read", "Write", "Create", "Delete", "Submit", "Cancel", "Amend", "Print", "Email",
 		                     "Report", "Import", "Export", "Share"]
