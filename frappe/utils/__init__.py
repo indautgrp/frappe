@@ -75,8 +75,6 @@ def validate_email_add(email_str, throw=False):
 	"""Validates the email string"""
 	if not email_str:
 		return False
-	if 'undisclosed-recipient' in email_str:
-		return False
 
 	elif " " in email_str and "<" not in email_str:
 		# example: "test@example.com test2@example.com" will return "test@example.comtest2" after parseaddr!!!
@@ -107,8 +105,7 @@ def split_emails(txt):
 	email_list = []
 
 	# emails can be separated by comma or newline
-	s = re.sub(r'[\t\n\r]', ' ', cstr(txt))
-	for email in re.split('''[,\\n](?=(?:[^"]|"[^"]*")*$)''', s):
+	for email in re.split('''[,\\n](?=(?:[^"]|"[^"]*")*$)''', cstr(txt)):
 		email = strip(cstr(email))
 		if email:
 			email_list.append(email)

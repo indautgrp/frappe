@@ -530,7 +530,7 @@ class BaseDocument(object):
 			if not value or not isinstance(value, basestring):
 				continue
 
-			elif (u"<" not in value and u">" not in value):
+			elif ("<" not in value and ">" not in value):
 				# doesn't look like html so no need
 				continue
 

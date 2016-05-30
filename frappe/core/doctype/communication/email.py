@@ -9,7 +9,6 @@ from frappe.utils import get_url, get_formatted_email, cint, validate_email_add,
 from frappe.utils.file_manager import get_file
 from frappe.email.bulk import check_bulk_limit
 import frappe.email.smtp
-from frappe.email import set_customer_supplier
 from frappe import _
 
 @frappe.whitelist()
@@ -43,7 +42,6 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	if not sender:
 		sender = get_formatted_email(frappe.session.user)
 
-	contact = set_customer_supplier(sender,recipients)
 	comm = frappe.get_doc({
 		"doctype":"Communication",
 		"subject": subject,
@@ -54,10 +52,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"communication_medium": communication_medium,
 		"sent_or_received": sent_or_received,
 		"reference_doctype": doctype,
-		"reference_name": name,
-		"timeline_doctype":contact["timeline_doctype"],
-		"timeline_name":contact["timeline_name"],
-		"timeline_label":contact["timeline_label"],
+		"reference_name": name
 	})
 	comm.insert(ignore_permissions=True)
 
@@ -75,7 +70,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 
 def validate_email(doc):
 	"""Validate Email Addresses of Recipients and CC"""
-	if not (doc.communication_type=="Communication" and doc.communication_medium == "Email") or doc.flags.in_receive:
+	if not (doc.communication_type=="Communication" and doc.communication_medium == "Email"):
 		return
 
 	# validate recipients
@@ -230,13 +225,9 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 def set_incoming_outgoing_accounts(doc):
 	doc.incoming_email_account = doc.outgoing_email_account = None
 
-	if not doc.incoming_email_account and doc.sender:
+	if doc.reference_doctype:
 		doc.incoming_email_account = frappe.db.get_value("Email Account",
-			{"email_id": doc.sender, "enable_incoming": 1}, "email_id")
-
-	if not doc.incoming_email_account and doc.reference_doctype:
-		doc.incoming_email_account = frappe.db.get_value("Email Account",
-			{"append_to": doc.reference_doctype, }, "email_id")
+			{"append_to": doc.reference_doctype, "enable_incoming": 1}, "email_id")
 
 		doc.outgoing_email_account = frappe.db.get_value("Email Account",
 			{"append_to": doc.reference_doctype, "enable_outgoing": 1},
@@ -263,12 +254,11 @@ def get_recipients(doc, fetched_from_email_account=False):
 
 	if recipients:
 		# exclude email accounts
-		exclude = []
-		#exclude = [d[0] for d in
-		#	frappe.db.get_all("Email Account", ["email_id"], {"enable_incoming": 1}, as_list=True)]
-		#exclude += [d[0] for d in
-		#	frappe.db.get_all("Email Account", ["login_id"], {"enable_incoming": 1}, as_list=True)
-		#	if d[0]]
+		exclude = [d[0] for d in
+			frappe.db.get_all("Email Account", ["email_id"], {"enable_incoming": 1}, as_list=True)]
+		exclude += [d[0] for d in
+			frappe.db.get_all("Email Account", ["login_id"], {"enable_incoming": 1}, as_list=True)
+			if d[0]]
 
 		recipients = filter_email_list(doc, recipients, exclude)
 
@@ -290,12 +280,11 @@ def get_cc(doc, recipients=None, fetched_from_email_account=False):
 
 	if cc:
 		# exclude email accounts, unfollows, recipients and unsubscribes
-		exclude = []
-		#exclude = [d[0] for d in
-		#	frappe.db.get_all("Email Account", ["email_id"], {"enable_incoming": 1}, as_list=True)]
-		#exclude += [d[0] for d in
-		#	frappe.db.get_all("Email Account", ["login_id"], {"enable_incoming": 1}, as_list=True)
-		#	if d[0]]
+		exclude = [d[0] for d in
+			frappe.db.get_all("Email Account", ["email_id"], {"enable_incoming": 1}, as_list=True)]
+		exclude += [d[0] for d in
+			frappe.db.get_all("Email Account", ["login_id"], {"enable_incoming": 1}, as_list=True)
+			if d[0]]
 		exclude += [d[0] for d in frappe.db.get_all("User", ["name"], {"thread_notify": 0}, as_list=True)]
 		exclude += [(parseaddr(email)[1] or "").lower() for email in recipients]
 
