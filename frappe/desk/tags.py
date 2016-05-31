@@ -59,15 +59,14 @@ def remove_tag():
 def get_tags(doctype, txt):
 	tags = []
 	try:
-		for _user_tags in frappe.db.sql_list("""select `_user_tags`
+		for _user_tags in frappe.db.sql_list("""select DISTINCT `_user_tags`
 			from `tab{0}`
 			where _user_tags like '%{1}%'
-			limit 1""".format(frappe.db.escape(doctype), frappe.db.escape(txt))):
-			tags.extend(_user_tags.split(","))
+			limit 50""".format(frappe.db.escape(doctype), frappe.db.escape(txt))):
+			tags.extend(_user_tags[1:].split(","))
 	except Exception, e:
 		if e.args[0]!=1054: raise
-
-	return sorted(filter(lambda t: t and txt in t, list(set(tags))))
+	return sorted(filter(lambda t: t and txt.lower() in t.lower(), list(set(tags))))
 
 class DocTags:
 	"""Tags for a particular doctype"""

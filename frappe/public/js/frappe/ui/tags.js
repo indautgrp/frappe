@@ -21,6 +21,7 @@ frappe.ui.TagEditor = Class.extend({
 			placeholderText: __('Add a tag') + "...",
 			onTagAdded: function(ev, tag) {
 				if(me.initialized && !me.refreshing) {
+					tag.find('.tagit-label').text(toTitle(tag.find('.tagit-label').text()));
 					var tag = tag.find('.tagit-label').text();
 					return frappe.call({
 						method: 'frappe.desk.tags.add_tag',
