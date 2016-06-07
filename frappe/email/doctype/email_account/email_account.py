@@ -234,10 +234,7 @@ class EmailAccount(Document):
 				else:
 					frappe.db.commit()
 					attachments = [d.file_name for d in communication._attachments]
-					if self.no_remaining == 0:
-						if communication.reference_doctype:
-							if not frappe.db.get_value("Communication", communication.message_id, "message_id"):
-								communication.notify(attachments=attachments, fetched_from_email_account=True)
+					communication.notify(attachments=attachments, fetched_from_email_account=True)
 
 			#update attachment folder size as suspended for emails
 			try:
