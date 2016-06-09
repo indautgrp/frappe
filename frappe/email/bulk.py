@@ -255,6 +255,9 @@ def flush(from_test=False):
 		where datediff(curdate(), creation) > 3 and status='Not Sent'""", auto_commit=auto_commit)
 
 	for i in xrange(500):
+		if frappe.defaults.get_defaults().get("hold_bulk"):
+			break
+		
 		email = frappe.db.sql("""select * from `tabBulk Email` where
 			status='Not Sent' and ifnull(send_after, "2000-01-01 00:00:00") < %s
 			order by priority desc, creation asc limit 1 for update""", now_datetime(), as_dict=1)
