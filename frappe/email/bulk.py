@@ -164,11 +164,6 @@ def get_unsubscribe_link(reference_doctype, reference_name,
 	email_sent_cc = ", ".join([e for e in email_sent_to if e in show_as_cc])
 	email_sent_to = ", ".join([e for e in email_sent_to if e not in show_as_cc])
 
-	if email_sent_cc:
-		email_sent_message = _("This email was sent to {0} and copied to {1}").format(email_sent_to, email_sent_cc)
-	else:
-		email_sent_message = _("This email was sent to {0}").format(email_sent_to)
-
 	if not unsubscribe_message:
 		unsubscribe_message = _("Unsubscribe from this list")
 
@@ -176,7 +171,6 @@ def get_unsubscribe_link(reference_doctype, reference_name,
 		unsubscribe_method, unsubscribe_params)
 
 	html = """<div style="margin: 15px auto; padding: 0px 7px; text-align: center; color: #8d99a6;">
-			{email}
 			<p style="margin: 15px auto;">
 				<a href="{unsubscribe_url}" style="color: #8d99a6; text-decoration: underline;
 					target="_blank">{unsubscribe_message}
@@ -184,12 +178,10 @@ def get_unsubscribe_link(reference_doctype, reference_name,
 			</p>
 		</div>""".format(
 			unsubscribe_url = unsubscribe_url,
-			email=email_sent_message,
 			unsubscribe_message=unsubscribe_message
 		)
 
-	text = "\n{email}\n\n{unsubscribe_message}: {unsubscribe_url}".format(
-		email=email_sent_message,
+	text = "\n\n{unsubscribe_message}: {unsubscribe_url}".format(
 		unsubscribe_message=unsubscribe_message,
 		unsubscribe_url=unsubscribe_url
 	)
