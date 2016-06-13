@@ -147,7 +147,12 @@ frappe.views.ListSidebar = Class.extend({
 			.on("click", ".stat-link", function() {
 				var fieldname = $(this).attr('data-field');
 				var label = $(this).attr('data-label');
-				me.set_filter(fieldname, label);
+				if (label == "No Tags") {
+					me.doclistview.filter_list.add_filter(me.doclistview.doctype, fieldname, 'not like', '%,%')
+					me.doclistview.run();
+				} else {
+					me.set_filter(fieldname, label);
+				}
 				return false;
 			})
 			.appendTo(this.sidebar);
