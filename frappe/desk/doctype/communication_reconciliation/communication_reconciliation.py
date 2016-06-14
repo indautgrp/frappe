@@ -123,23 +123,14 @@ def relink(name,reference_doctype,reference_name):
 			}).insert(ignore_permissions=True)
 
 def get_communication_doctype(doctype, txt, searchfield, start, page_len, filters):
-	from frappe.desk.reportview import get_match_cond
-	return frappe.db.sql("""select name,module
-		from `tabDocType`
-		WHERE issingle = 0
-		and istable = 0
-		and hide_toolbar = 0
-		and ({key} like %(txt)s)
-		{mcond}
-		order by
-			if(locate(%(_txt)s, name), locate(%(_txt)s, name), 99999),
-			name
-		limit %(start)s, %(page_len)s""".format(**{
-			'key': searchfield,
-			'mcond': get_match_cond(doctype)
-		}), {
-			'txt': "%%%s%%" % txt,
-			'_txt': txt.replace("%", ""),
-			'start': start,
-			'page_len': page_len
-		})
+	user_perms = frappe.utils.user.UserPermissions(frappe.session.user)
+	user_perms.build_permissions()
+	can_read = user_perms.can_read
+
+	com_doctypes = [d[0] for d in frappe.db.get_values("DocType", {"issingle": 1,"istable": 1,"hide_toolbar": 1})]
+
+	out = []
+	for dt in can_read:
+		if txt.lower().replace("%", "") in dt.lower() and dt not in com_doctypes:
+			out.append([dt])
+	return out
