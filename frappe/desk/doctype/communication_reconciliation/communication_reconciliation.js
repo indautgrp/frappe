@@ -5,8 +5,8 @@ frappe.communication_reconciliation.showhidden = function(){
 frappe.ui.form.on("Communication Reconciliation", {
 	onload: function(frm){
 		var method = "frappe.desk.doctype.communication_reconciliation.communication_reconciliation.get_communication_doctype";
-		cur_frm.get_field("reference_doctype").get_query = frappe.communication_reconciliation.method;
-		cur_frm.fields_dict["communication_list"].grid.get_field("reference_doctype").get_query = frappe.communication_reconciliation.method;
+		cur_frm.get_field("reference_doctype").get_query = method;
+		cur_frm.fields_dict["communication_list"].grid.get_field("reference_doctype").get_query = method;
 	},
     	refresh: function(frm) {
 		setTimeout(frappe.communication_reconciliation.showhidden, 1)
