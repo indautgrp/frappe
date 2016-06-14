@@ -64,7 +64,7 @@ class CommunicationReconciliation(Document):
 			if not doc.timeline_label:
 				doc.timeline_doctype = None
 				doc.timeline_name = None
-				doc.save()
+				doc.save(ignore_permissions=True)
 
 			comm = frappe.get_doc({
 				"doctype": "Communication",
@@ -107,7 +107,7 @@ def relink(name,reference_doctype,reference_name):
 		if not doc.timeline_label:
 			doc.timeline_doctype = None
 			doc.timeline_name = None
-			doc.save()
+			doc.save(ignore_permissions=True)
 
 		frappe.get_doc({
 				"doctype": "Communication",
