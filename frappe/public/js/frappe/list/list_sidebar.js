@@ -14,6 +14,7 @@ frappe.views.ListSidebar = Class.extend({
 		$.extend(this, opts);
 		this.make();
 		this.get_stats();
+		this.cat_tags = [];
 	},
 	make: function() {
 		var sidebar_content = frappe.render_template("list_sidebar", {doctype: this.doclistview.doctype});
@@ -41,6 +42,9 @@ frappe.views.ListSidebar = Class.extend({
 			me.doclistview.assigned_to_me();
 		});
 	},
+	get_cat_tags:function(){
+		return this.cat_tags;
+	},
 	get_stats: function() {
 		var me = this
 		return frappe.call({
@@ -61,7 +65,7 @@ frappe.views.ListSidebar = Class.extend({
 
 							me.cats[me.defined_category[i].category].push(me.defined_category[i].tag);
 						}
-
+						me.cat_tags[i]=me.defined_category[i].tag
 					}
 					me.tempstats = r.message
 					var len = me.cats.length
