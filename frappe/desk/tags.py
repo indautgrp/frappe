@@ -2,6 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+import json
 """
 Server side functions for tagging.
 
@@ -56,8 +57,8 @@ def remove_tag():
 
 
 @frappe.whitelist()
-def get_tags(doctype, txt):
-	tags = []
+def get_tags(doctype, txt,cat_tags):
+	tags = json.loads(cat_tags)
 	try:
 		for _user_tags in frappe.db.sql_list("""select DISTINCT `_user_tags`
 			from `tab{0}`
