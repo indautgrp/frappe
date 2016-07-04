@@ -427,6 +427,7 @@ _f.Frm.prototype.refresh = function(docname) {
 
 _f.Frm.prototype.set_new_docname_from_link = function() {
 	if(frappe._from_link && frappe._new_docname_from_link) {
+		frappe._from_link.frm.fields_dict[frappe._from_link.df.fieldname].set_value(frappe._new_docname_from_link);
 		frappe.model.set_value(frappe._from_link.doctype,
 			frappe._from_link.docname, frappe._from_link.df.fieldname, frappe._new_docname_from_link);
 
