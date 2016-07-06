@@ -10,7 +10,7 @@ from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html
 from frappe.utils.verified_command import get_signed_params, verify_request
 from html2text import html2text
-from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split_emails, cstr
+from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split_emails, cstr, cint
 
 class BulkLimitCrossedError(frappe.ValidationError): pass
 
@@ -255,7 +255,7 @@ def flush(from_test=False):
 		where datediff(curdate(), creation) > 3 and status='Not Sent'""", auto_commit=auto_commit)
 
 	for i in xrange(500):
-		if frappe.defaults.get_defaults().get("hold_bulk"):
+		if cint(frappe.defaults.get_defaults().get("hold_bulk")):
 			break
 		
 		email = frappe.db.sql("""select * from `tabBulk Email` where
