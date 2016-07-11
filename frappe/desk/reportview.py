@@ -144,21 +144,24 @@ def get_tag_catagories(doctype):
 	return cat_tags
 
 @frappe.whitelist()
-def get_stats(stats, doctype):
+def get_stats(stats, doctype,filters=[]):
 	"""get tag info"""
 	import json
 	tags = json.loads(stats)
+	if filters:
+		filters = json.loads(filters)
 	stats = {}
 
 	columns = frappe.db.get_table_columns(doctype)
 	for tag in tags:
 		if not tag in columns: continue
 		tagcount = execute(doctype, fields=[tag, "count(*)"],
-			filters=["ifnull(`%s`,'')!=''" % tag], group_by=tag, as_list=True)
+			#filters=["ifnull(`%s`,'')!=''" % tag], group_by=tag, as_list=True)
+			filters = filters + ["ifnull(`%s`,'')!=''" % tag], group_by = tag, as_list = True)
 
 		if tag=='_user_tags':
 			stats[tag] = scrub_user_tags(tagcount)
-			stats[tag].append(["No Tags",execute(doctype, fields=[tag, "count(*)"], filters=[tag +"= ',' or "+tag+" is null" ],  as_list=True)[0][1]])
+			stats[tag].append(["No Tags",execute(doctype, fields=[tag, "count(*)"]+[tag +"= ',' or "+tag+" is null" ], filters=filters ,  as_list=True)[0][1]])
 		else:
 			stats[tag] = tagcount
 
