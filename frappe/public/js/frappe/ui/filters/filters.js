@@ -6,7 +6,134 @@ frappe.ui.FilterList = Class.extend({
 		$.extend(this, opts);
 		this.filters = [];
 		this.$w = this.$parent;
+		this.stats = ['owner','modified_by'];
+		this.make_dash();
 		this.set_events();
+	},
+	make_dash: function() {
+		var me = this;
+		$(frappe.render_template("filter_dash", {})).appendTo(this.$w.find('.show_filters'));
+		//show filter dashboard
+		this.$w.find('.show-filter-dashboard').click(function() {
+			$(this).closest('.show_filters').find('.filter_area').toggle();
+			$(this).text(function(i, text){
+          return text === __("Hide Standard Filters")?__("Show Standard Filters") : __("Hide Standard Filters");
+      })
+		});
+		//add stats
+		$.each(frappe.meta.docfield_map[this.doctype], function(i,d) {
+			if (d.in_filter_dash&&frappe.perm.has_perm(me.doctype, d.permlevel, "read")) {
+				if (d.fieldtype != 'Table') {
+					me.stats.push(d.fieldname);
+				}
+			}
+		});
+		$.each(me.stats, function (i, v) {
+			me.render_dash_headers(v);
+		});
+	},
+	render_dash_headers: function(field){
+		var me = this;
+		var list = {
+			"owner": "Created By",
+			"modified_by": "Last Modified By"
+		}
+		if (frappe.meta.docfield_map[this.doctype][field]){
+			var label = frappe.meta.docfield_map[this.doctype][field].label
+		}else if(list[field]){
+			var label = list[field]
+		}else{
+			var label = field
+		}
+		var context = {
+			field: field,
+			label: __(label)
+		};
+		var sidebar_stat = $(frappe.render_template("filter_dash_stat_head", context))
+			.appendTo(this.$w.find(".filter-dashboard-items"));
+
+		//adjust width for horizontal scrolling
+		var width = 160+(me.stats.length)*180+30
+		this.$w.find(".filter-dashboard-items").css("width",width)
+		me.reload_stats()
+	},
+	reload_stats: function(){
+		//get stats
+	var me = this
+
+		return frappe.call({
+			type: "GET",
+			method: 'frappe.desk.reportview.get_stats',
+			args: {
+				stats: me.stats,
+				doctype: me.doctype,
+				filters:me.default_filters
+			},
+			callback: function(r) {
+								//render normal stats
+				// This gives a predictable stats order
+				me.$w.find(".filter-stat").empty();
+				$.each(me.stats, function (i, v) {
+						me.render_filters(v, (r.message|| {})[v]);
+				});
+			}
+		});
+	},
+	render_filters: function(field, stat){
+		var me = this;
+		var sum = 0;
+		var list = {
+			"owner": "Created By",
+			"modified_by": "Last Modified By"
+		}
+		if (frappe.meta.docfield_map[this.doctype][field]){
+			var label = frappe.meta.docfield_map[this.doctype][field].label
+		}else if(list[field]){
+			var label = list[field]
+		}else{
+			var label = field
+		}
+		//sort based on icon
+		var type = /icon-\S+/g.exec(this.$w.find(".filter-label[data-name='"+label+"']").find(".filter-sort-active").attr('class'));
+		if(type[0].indexOf("alphabet")>0){
+			stat = (stat || []).sort(function(a, b) {return a[0].toString().toLowerCase().localeCompare(b[0].toString().toLowerCase());});
+
+		}else{
+			stat = (stat || []).sort(function(a, b) { return a[1] - b[1] });
+		}
+		stat = type[0].indexOf("-alt")>0? stat.reverse():stat;
+
+		//check formatting
+		var df = frappe.meta.has_field(me.doctype,field)
+		if(df && df.fieldtype=='Check') {
+			var options = [{value: 0, label: 'No'},
+				{value: 1, label: 'Yes'}]
+		}
+		if(options) {
+			for (i in stat) {
+				for (o in options) {
+					if (stat[i][0] == options[o].value) {
+						stat[i][0] = options[o].label
+					}
+				}
+			}
+		}
+		var context = {
+			field: field,
+			stat: stat,
+			sum: sum,
+			label: __(label)
+		};
+
+		this.$w.find(".filter-stat[data-name='"+label+"']").html(frappe.render_template("filter_dash_stats", context)).on("click", ".filter-stat-link", function() {
+				var fieldname = $(this).attr('data-field');
+				var label = $(this).attr('data-label');
+				if (df && df.fieldtype=='Check') {
+					var noduplicate = true
+				}
+				me.listobj.set_filter(fieldname, label,false,noduplicate);
+				return false;
+			})
 	},
 	set_events: function() {
 		var me = this;
@@ -14,6 +141,79 @@ frappe.ui.FilterList = Class.extend({
 		this.$w.find('.new-filter').bind('click', function() {
 			me.add_filter();
 		});
+
+
+		this.$w.find('.clear-filter').bind('click', function() {
+			me.clear_filters();
+			$('.date-range-picker').val('')
+			me.listobj.run();
+		});
+		//set sort filters
+		this.$w.find(".filter-label").on("click", ".filter-sort-item", function() {
+			var active = $(this).closest(".filter-dash-item").find(".filter-sort-active").attr('class',
+				   function(i, c){
+					  return c.replace(/(^|\s)icon-\S+/g, '');
+				   });
+			var classes = $(this).find('.filter-sort').attr('class');
+			classes = classes.replace('filter-sort','');
+			$(active).addClass(classes);
+			me.reload_stats();
+		});
+		//setup date-time range pickers
+		$(".date-range-picker").each(function(i,v) {
+			var picker = this;
+			var lab = $(v).data("name");
+			$(v).daterangepicker({
+				"autoApply": true,
+				"showDropdowns": true,
+				"ranges": {
+					'Today': [moment(), moment()],
+					'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+					'Last Week': [moment().subtract(1, 'week').startOf('week'), moment().subtract(1, 'week').endOf('week')],
+					'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+					'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+					'This Month': [moment().startOf('month'), moment().endOf('month')],
+					'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+					'Last 3 Months': [moment().subtract(3, 'month').startOf('month'), moment().endOf('month')],
+					'Financial Year': [moment(frappe.defaults.get_default("year_start_date"), "YYYY-MM-DD"), moment(frappe.defaults.get_default("year_end_date"), "YYYY-MM-DD")],
+					'Last Financial Year': [moment(frappe.defaults.get_default("year_start_date"), "YYYY-MM-DD").subtract(1, 'year'), moment(frappe.defaults.get_default("year_end_date"), "YYYY-MM-DD").subtract(1, 'year')]
+				},
+				"locale": {
+					"format": "DD-MM-YYYY",
+					"firstDay": 1,
+					"cancelLabel": "Clear"
+				},
+				"linkedCalendars": false,
+				"alwaysShowCalendars": true,
+				"cancelClass": "date-range-picker-cancel "+lab,
+				"autoUpdateInput": false
+			}, function (start, end, label) {
+				$(this.element[0]).val(start.format('DD-MM-YYYY') + ' - ' + end.format('DD-MM-YYYY'));
+				var filt = me.get_filter(lab);
+				if (filt) {
+					filt.remove(true)
+				}
+				var filt = me.get_filter(lab);
+				if (filt) {
+					filt.remove(true)
+				}
+
+				me.add_filter(me.doctype, lab, '>=', start);
+				me.add_filter(me.doctype, lab, '<=', end);
+				me.listobj.run();
+			}).on('cancel.daterangepicker', function(ev, picker) {
+      			$(this).val('');
+				var filt = me.get_filter(lab);
+				if (filt) {
+					filt.remove(true)
+				}
+				var filt = me.get_filter(lab);
+				if (filt) {
+					filt.remove()
+				}
+			});
+			$(".date-range-picker-cancel." + lab ).removeClass("hide")
+		})
 	},
 
 	show_filters: function() {
@@ -51,7 +251,6 @@ frappe.ui.FilterList = Class.extend({
 
 		return filter;
 	},
-
 	push_new_filter: function(doctype, fieldname, condition, value) {
 		if(this.filter_exists(doctype, fieldname, condition, value)) return;
 
@@ -359,7 +558,7 @@ frappe.ui.Filter = Class.extend({
 				title="'+__("Remove Filter")+'">\
 				<i class="icon-remove text-muted"></i>\
 			</button></div>')
-			.insertAfter(this.flist.$w.find(".set-filters .new-filter"));
+			.insertAfter(this.flist.$w.find(".set-filters .show-filter-dashboard"));
 
 		this.set_filter_button_text();
 
@@ -368,6 +567,7 @@ frappe.ui.Filter = Class.extend({
 		});
 
 		this.$btn_group.find(".toggle-filter").on("click", function() {
+			$(this).closest('.show_filters').find('.filter_area').show()
 			me.$w.toggle();
 		})
 		this.$w.toggle(false);

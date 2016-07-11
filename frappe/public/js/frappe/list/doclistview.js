@@ -256,7 +256,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	refresh: function(dirty) {
 		if(dirty!==undefined) this.dirty = dirty;
 		this.init_stats();
-
+		this.filter_list.reload_stats();
 		if(this.listview.settings.refresh) {
 			this.listview.settings.refresh(this);
 		}
@@ -645,43 +645,15 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 					stats: me.listview.stats,
 					defined_category : me.defined_category,
 					parent: me.$page.find('.layout-side-section'),
-					set_filter: function(fieldname, label) {
-						me.set_filter(fieldname, label);
+					set_filter: function(fieldname, label,norun,noduplicates) {
+						me.set_filter(fieldname, label,norun,noduplicates);
 					},
+					default_filters:me.listview.settings.default_filters,
 					page: me.page,
 					doclistview: me
 				})
 			}
 		})
-	},
-	set_filter: function(fieldname, label, no_run) {
-		var filter = this.filter_list.get_filter(fieldname);
-		if(filter) {
-			var v = cstr(filter.field.get_parsed_value());
-			if(v.indexOf(label)!=-1) {
-				// already set
-				return false;
-			} else {
-				// second filter set for this field
-				if(fieldname=='_user_tags' || fieldname=="_liked_by") {
-					// and for tags
-					this.filter_list.add_filter(this.doctype, fieldname, 'like', '%' + label);
-				} else {
-					// or for rest using "in"
-					filter.set_values(this.doctype, fieldname, 'in', v + ', ' + label);
-				}
-			}
-		} else {
-			// no filter for this item,
-			// setup one
-			if(fieldname=='_user_tags' || fieldname=="_liked_by") {
-				this.filter_list.add_filter(this.doctype, fieldname, 'like', '%' + label);
-			} else {
-				this.filter_list.add_filter(this.doctype, fieldname, '=', label);
-			}
-		}
-		if(!no_run)
-			this.run();
 	},
 	call_for_selected_items: function(method, args) {
 		var me = this;
