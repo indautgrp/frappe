@@ -155,7 +155,7 @@ frappe.ui.Listing = Class.extend({
 			$parent: this.$w.find('.list-filters').toggle(true),
 			doctype: this.doctype,
 			filter_fields: this.filter_fields,
-			default_filters:this.listview?this.listview.settings.default_filters:[]
+			default_filters:this.default_filters? this.default_filters: this.listview?this.listview.settings.default_filters:[]
 		});
 		if(frappe.model.is_submittable(this.doctype)) {
 			this.filter_list.add_filter(this.doctype, "docstatus", "!=", 2);

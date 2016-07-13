@@ -1064,12 +1064,13 @@
                     });
                 }
             } else {
+                var idealwidth = this.container.outerWidth()
                 this.container.css({
                     top: containerTop,
                     left: this.element.offset().left - parentOffset.left,
                     right: 'auto'
                 });
-                if (this.container.offset().left + this.container.outerWidth() > $(window).width()) {
+                if (this.container.offset().left + idealwidth > $(window).width()) {
                     this.container.css({
                         left: 'auto',
                         right: 0

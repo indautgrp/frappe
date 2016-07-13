@@ -32,6 +32,13 @@
     padding-left:5px;
     padding-right:5px;
     float:left;
+    height:152px;
+    border-right:1px solid #d1d8dd;
+}
+.filter-dash-item:after{
+    /*top:-10px;*/
+
+
 }
 .filter-sort{
     font-size:1.5em;
@@ -63,4 +70,7 @@
 }
 .filter-stat-link>.stat{
     word-break: break-all;
+}
+.filter-dash-controls>.filter-label{
+    padding-bottom: 5px;
 }
