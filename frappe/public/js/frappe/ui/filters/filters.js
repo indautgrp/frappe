@@ -6,7 +6,7 @@ frappe.ui.FilterList = Class.extend({
 		$.extend(this, opts);
 		this.filters = [];
 		this.$w = this.$parent;
-		this.stats = ['owner','modified_by'];
+		this.stats = [{name:'owner',label:'Created By',type:'Data'},{name:'modified_by',label:'Last Modified By',type:'Data'}];
 		this.make_dash();
 		this.set_events();
 	},
@@ -24,57 +24,55 @@ frappe.ui.FilterList = Class.extend({
 		$.each(frappe.meta.docfield_map[this.doctype], function(i,d) {
 			if (d.in_filter_dash&&frappe.perm.has_perm(me.doctype, d.permlevel, "read")) {
 				if (d.fieldtype != 'Table') {
-					me.stats.push(d.fieldname);
+					me.stats.push({name:d.fieldname,label:d.label,type:d.fieldtype});
 				}
 			}
 		});
 		$.each(me.stats, function (i, v) {
 			me.render_dash_headers(v);
 		});
+		me.reload_stats()
 	},
 	render_dash_headers: function(field){
 		var me = this;
-		var list = {
-			"owner": "Created By",
-			"modified_by": "Last Modified By"
-		}
-		if (frappe.meta.docfield_map[this.doctype][field]){
-			var label = frappe.meta.docfield_map[this.doctype][field].label
-		}else if(list[field]){
-			var label = list[field]
-		}else{
-			var label = field
-		}
 		var context = {
-			field: field,
-			label: __(label)
+			field: field.name,
+			label: __(field.label),
+			type:field.type
 		};
 		var sidebar_stat = $(frappe.render_template("filter_dash_stat_head", context))
 			.appendTo(this.$w.find(".filter-dashboard-items"));
 
 		//adjust width for horizontal scrolling
 		var width = 160+(me.stats.length)*180+30
-		this.$w.find(".filter-dashboard-items").css("width",width)
-		me.reload_stats()
+		this.$w.find(".filter-dashboard-items").css("width",width);
 	},
 	reload_stats: function(){
-		//get stats
-	var me = this
+		if(this.fresh ) {
+			return;
+		}
+		// set a fresh so that multiple refreshes do not happen
+		// at the same time.
+		this.fresh = true;
+		setTimeout(function() {
+			me.fresh = false;
+		}, 1000);
 
+		//get stats
+		var me = this
 		return frappe.call({
 			type: "GET",
-			method: 'frappe.desk.reportview.get_stats',
+			method: 'frappe.desk.reportview.get_dash',
 			args: {
 				stats: me.stats,
 				doctype: me.doctype,
 				filters:me.default_filters
 			},
 			callback: function(r) {
-								//render normal stats
 				// This gives a predictable stats order
 				me.$w.find(".filter-stat").empty();
 				$.each(me.stats, function (i, v) {
-						me.render_filters(v, (r.message|| {})[v]);
+						me.render_filters(v, (r.message|| {})[v.name]);
 				});
 			}
 		});
@@ -82,19 +80,11 @@ frappe.ui.FilterList = Class.extend({
 	render_filters: function(field, stat){
 		var me = this;
 		var sum = 0;
-		var list = {
-			"owner": "Created By",
-			"modified_by": "Last Modified By"
-		}
-		if (frappe.meta.docfield_map[this.doctype][field]){
-			var label = frappe.meta.docfield_map[this.doctype][field].label
-		}else if(list[field]){
-			var label = list[field]
-		}else{
-			var label = field
+		if (['Date', 'Datetime'].indexOf(field.type)!=-1) {
+			return
 		}
 		//sort based on icon
-		var type = /icon-\S+/g.exec(this.$w.find(".filter-label[data-name='"+label+"']").find(".filter-sort-active").attr('class'));
+		var type = /icon-\S+/g.exec(this.$w.find(".filter-label[data-name='"+__(field.label)+"']").find(".filter-sort-active").attr('class'));
 		if(type[0].indexOf("alphabet")>0){
 			stat = (stat || []).sort(function(a, b) {return a[0].toString().toLowerCase().localeCompare(b[0].toString().toLowerCase());});
 
@@ -104,7 +94,7 @@ frappe.ui.FilterList = Class.extend({
 		stat = type[0].indexOf("-alt")>0? stat.reverse():stat;
 
 		//check formatting
-		var df = frappe.meta.has_field(me.doctype,field)
+		var df = frappe.meta.has_field(me.doctype,field.name)
 		if(df && df.fieldtype=='Check') {
 			var options = [{value: 0, label: 'No'},
 				{value: 1, label: 'Yes'}]
@@ -119,19 +109,23 @@ frappe.ui.FilterList = Class.extend({
 			}
 		}
 		var context = {
-			field: field,
+			field: field.name,
 			stat: stat,
 			sum: sum,
-			label: __(label)
+			label: __(field.label)
 		};
 
-		this.$w.find(".filter-stat[data-name='"+label+"']").html(frappe.render_template("filter_dash_stats", context)).on("click", ".filter-stat-link", function() {
+		this.$w.find(".filter-stat[data-name='"+__(field.label)+"']").html(frappe.render_template("filter_dash_stats", context)).on("click", ".filter-stat-link", function() {
 				var fieldname = $(this).attr('data-field');
 				var label = $(this).attr('data-label');
 				if (df && df.fieldtype=='Check') {
 					var noduplicate = true
 				}
-				me.listobj.set_filter(fieldname, label,false,noduplicate);
+				if (label=="No Data"){
+					me.listobj.set_filter(fieldname, '',false,noduplicate);
+				}else{
+					me.listobj.set_filter(fieldname, label,false,noduplicate);
+				}
 				return false;
 			})
 	},
@@ -157,7 +151,6 @@ frappe.ui.FilterList = Class.extend({
 			var classes = $(this).find('.filter-sort').attr('class');
 			classes = classes.replace('filter-sort','');
 			$(active).addClass(classes);
-			me.reload_stats();
 		});
 		//setup date-time range pickers
 		$(".date-range-picker").each(function(i,v) {
@@ -187,8 +180,8 @@ frappe.ui.FilterList = Class.extend({
 				"alwaysShowCalendars": true,
 				"cancelClass": "date-range-picker-cancel "+lab,
 				"autoUpdateInput": false
-			}, function (start, end, label) {
-				$(this.element[0]).val(start.format('DD-MM-YYYY') + ' - ' + end.format('DD-MM-YYYY'));
+			}).on('apply.daterangepicker',function(ev,picker){
+				$(this).val(picker.startDate.format('DD-MM-YYYY') + ' - ' + picker.endDate.format('DD-MM-YYYY'));
 				var filt = me.get_filter(lab);
 				if (filt) {
 					filt.remove(true)
@@ -197,9 +190,8 @@ frappe.ui.FilterList = Class.extend({
 				if (filt) {
 					filt.remove(true)
 				}
-
-				me.add_filter(me.doctype, lab, '>=', start);
-				me.add_filter(me.doctype, lab, '<=', end);
+				me.add_filter(me.doctype, lab, '<=', picker.endDate);
+				me.add_filter(me.doctype, lab, '>=', picker.startDate);
 				me.listobj.run();
 			}).on('cancel.daterangepicker', function(ev, picker) {
       			$(this).val('');
@@ -381,6 +373,7 @@ frappe.ui.Filter = Class.extend({
 
 		if(!dont_run) {
 			this.flist.listobj.dirty = true;
+			this.flist.listobj.clean_dash = true;
 			this.flist.listobj.refresh();
 		}
 	},

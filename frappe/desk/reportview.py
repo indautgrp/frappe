@@ -167,6 +167,34 @@ def get_stats(stats, doctype,filters=[]):
 
 	return stats
 
+@frappe.whitelist()
+def get_dash(stats, doctype,filters=[]):
+	"""get tag info"""
+	import json
+	tags = json.loads(stats)
+	if filters:
+		filters = json.loads(filters)
+	stats = {}
+
+	columns = frappe.db.get_table_columns(doctype)
+	for tag in tags:
+		if not tag["name"] in columns: continue
+		if tag["type"] not in ['Date', 'Datetime']:
+			tagcount = execute(doctype, fields=[tag["name"], "count(*)"],
+				filters = filters + ["ifnull(`%s`,'')!=''" % tag["name"]], group_by = tag["name"], as_list = True)
+
+		if tag["type"] not in ['Check','Select','Date','Datetime']:
+			stats[tag["name"]] = list(tagcount)
+			if stats[tag["name"]]:
+				data =["No Data",execute(doctype, fields=[tag["name"], "count(*)"], filters=filters + ["({0} = '' or {0} is null)".format(tag["name"])],  as_list=True)[0][1]]
+				if data and data[1]!=0:
+
+					stats[tag["name"]].append(data)
+		else:
+			stats[tag["name"]] = tagcount
+
+	return stats
+
 def scrub_user_tags(tagcount):
 	"""rebuild tag list for tags"""
 	rdict = {}

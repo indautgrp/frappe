@@ -256,7 +256,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	refresh: function(dirty) {
 		if(dirty!==undefined) this.dirty = dirty;
 		this.init_stats();
-		this.filter_list.reload_stats();
 		if(this.listview.settings.refresh) {
 			this.listview.settings.refresh(this);
 		}
@@ -265,6 +264,9 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			this.set_route_options();
 			this.run();
 		} else if(this.dirty) {
+			if (this.clean_dash != true) {
+				this.filter_list.reload_stats();
+			}
 			this.run();
 		} else {
 			if(new Date() - (this.last_updated_on || 0) > 30000) {
@@ -322,7 +324,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		this.last_updated_on = new Date();
 		this.dirty = false;
-
+		this.clean_dash = false;
 		// set a fresh so that multiple refreshes do not happen
 		// at the same time. This is true when deleting.
 		// AJAX response will try to refresh and list_update notification
