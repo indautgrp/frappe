@@ -151,6 +151,7 @@ frappe.ui.FilterList = Class.extend({
 			var classes = $(this).find('.filter-sort').attr('class');
 			classes = classes.replace('filter-sort','');
 			$(active).addClass(classes);
+			me.reload_stats();
 		});
 		//setup date-time range pickers
 		$(".date-range-picker").each(function(i,v) {
