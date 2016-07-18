@@ -6,10 +6,11 @@
 			var stat_label = stat[i][0];
 			var stat_count = stat[i][1];
 	%}
-			<li style="width:154px;">
+			<li style="width:152px;">
 				<a class="filter-stat-link badge-hover small" data-label="{%= stat_label %}" data-field="{%= field %}" title="{%= stat_label %} ">
-					<span class="badge">{%= stat_count %}</span>
 					<span class="stat">{%= __(stat_label) %}</span>
+					<span class="badge">{%= stat_count %}</span>
+
 
 				</a>
 			</li>
