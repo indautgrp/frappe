@@ -128,6 +128,31 @@ frappe.ui.FilterList = Class.extend({
 				}
 				return false;
 			})
+		//list for autocomplete
+		var autolist = []
+		for (var i = 0;i<stat.length;i++){
+			autolist.push({label:stat[i][0],value:field.name});
+
+		}
+		this.$w.find(".filter-stat[data-name='"+__(field.label)+"']").parent().find(".search-dropdown").on("shown.bs.dropdown",function(event){
+			$(this).find(".search").focus();
+			$(this).find(".search").val("")
+		})
+		this.$w.find(".filter-stat[data-name='"+__(field.label)+"']").parent().find(".search").autocomplete({
+			source:autolist,
+			change:function(ev,ui){
+				if (ui.item) {
+					if (df && df.fieldtype == 'Check') {
+						var noduplicate = true
+					}
+					if (ui.item.label == "No Data") {
+						me.listobj.set_filter(ui.item.value, '', false, noduplicate);
+					} else {
+						me.listobj.set_filter(ui.item.value, ui.item.label, false, noduplicate);
+					}
+				}
+			}
+		})
 	},
 	set_events: function() {
 		var me = this;

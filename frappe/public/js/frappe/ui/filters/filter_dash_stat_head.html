@@ -5,8 +5,16 @@
 			<!--<i class="icon-calendar date-range-picker " data-name="{%= field %}" style="font-size:400%;padding: 20px"/>-->
 			<input type="text" autocomplete="off" class="input-with-feedback form-control date-range-picker {%=field%}-filter" style="margin-top:20px;"data-name="{%= field %}">
 			{% } else { %}
+		<span class="dropdown search-dropdown">
+			<i class="dropdown-toggle icon-search" data-toggle="dropdown"/>
+			<div class="dropdown-menu">
+				<form >
+				<input class="search" type="text" autocomplete="off" class="input-with-feedback form-control"style="width:200px;"/>
+				</form>
+			</div>
+		</span>
 		<span class="dropdown">
-			<i class="pull-right dropdown-toggle filter-sort-active icon-sort-by-attributes-alt" style="padding-right: 25px" data-toggle="dropdown"/>
+			<i class="pull-right dropdown-toggle filter-sort-active icon-sort-by-attributes-alt" style="padding-right: 15px" data-toggle="dropdown"/>
 			<ul class="dropdown-menu">
 				<li class="filter-sort-item"><i class="filter-sort icon-sort-by-alphabet"/><label>Alphabetically Ascending</label></li>
 				<li class="filter-sort-item"><i class="filter-sort icon-sort-by-alphabet-alt" /><label>Alphabetically Descending</label></li>
