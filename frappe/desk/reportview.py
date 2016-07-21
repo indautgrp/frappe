@@ -179,6 +179,7 @@ def get_dash(stats, doctype,filters=[]):
 	columns = frappe.db.get_table_columns(doctype)
 	for tag in tags:
 		if not tag["name"] in columns: continue
+		tagcount = []
 		if tag["type"] not in ['Date', 'Datetime']:
 			tagcount = execute(doctype, fields=[tag["name"], "count(*)"],
 				filters = filters + ["ifnull(`%s`,'')!=''" % tag["name"]], group_by = tag["name"], as_list = True)
