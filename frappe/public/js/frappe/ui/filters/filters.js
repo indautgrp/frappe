@@ -26,7 +26,9 @@ frappe.ui.FilterList = Class.extend({
 				}
 			}
 		});
-		me.stats = me.stats.concat([{name:'creation',label:'Created On',type:'Datetime'},
+
+		me.stats = me.stats.concat([{name:'docstatus',label:'Document Status',type:'Data'},
+				{name:'creation',label:'Created On',type:'Datetime'},
 					{name:'modified',label:'Last Modified On',type:'Datetime'},
 					{name:'owner',label:'Created By',type:'Data'},
 					{name:'modified_by',label:'Last Modified By',type:'Data'}]);
@@ -100,6 +102,10 @@ frappe.ui.FilterList = Class.extend({
 		if(df && df.fieldtype=='Check') {
 			var options = [{value: 0, label: 'No'},
 				{value: 1, label: 'Yes'}]
+		}else if(field.name=="docstatus") {
+			var options = [{value: 0, label: "Draft"},
+							{value: 1, label: "Submitted"},
+							{value: 2, label: "Cancelled"}]
 		}
 		if(options) {
 			for (i in stat) {
