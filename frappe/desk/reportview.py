@@ -161,7 +161,7 @@ def get_stats(stats, doctype,filters=[]):
 
 		if tag=='_user_tags':
 			stats[tag] = scrub_user_tags(tagcount)
-			stats[tag].append(["No Tags",execute(doctype, fields=[tag, "count(*)"], filters=filters+[tag +"= ',' or "+tag+" is null" ] ,  as_list=True)[0][1]])
+			stats[tag].append(["No Tags",execute(doctype, fields=[tag, "count(*)"], filters=filters +["({0} = ',' or {0} is null)".format(tag)],  as_list=True)[0][1]])
 		else:
 			stats[tag] = tagcount
 

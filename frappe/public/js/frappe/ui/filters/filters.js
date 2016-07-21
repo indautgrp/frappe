@@ -6,7 +6,7 @@ frappe.ui.FilterList = Class.extend({
 		$.extend(this, opts);
 		this.filters = [];
 		this.$w = this.$parent;
-		this.stats = [{name:'owner',label:'Created By',type:'Data'},{name:'modified_by',label:'Last Modified By',type:'Data'}];
+		this.stats = [];
 		this.make_dash();
 		this.set_events();
 	},
@@ -15,10 +15,8 @@ frappe.ui.FilterList = Class.extend({
 		$(frappe.render_template("filter_dash", {})).appendTo(this.$w.find('.show_filters'));
 		//show filter dashboard
 		this.$w.find('.show-filter-dashboard').click(function() {
-			$(this).closest('.show_filters').find('.filter_area').toggle();
-			$(this).text(function(i, text){
-          return text === __("Hide Standard Filters")?__("Show Standard Filters") : __("Hide Standard Filters");
-      })
+			$(this).closest('.show_filters').find('.dashboard-box').toggle();
+			$(this).prop('title',($(this).prop('title')===__("Hide Standard Filters"))?__("Show Standard Filters") : __("Hide Standard Filters"))
 		});
 		//add stats
 		$.each(frappe.meta.docfield_map[this.doctype], function(i,d) {
@@ -28,6 +26,10 @@ frappe.ui.FilterList = Class.extend({
 				}
 			}
 		});
+		me.stats = me.stats.concat([{name:'creation',label:'Created On',type:'Datetime'},
+					{name:'modified',label:'Last Modified On',type:'Datetime'},
+					{name:'owner',label:'Created By',type:'Data'},
+					{name:'modified_by',label:'Last Modified By',type:'Data'}]);
 		$.each(me.stats, function (i, v) {
 			me.render_dash_headers(v);
 		});
@@ -44,7 +46,7 @@ frappe.ui.FilterList = Class.extend({
 			.appendTo(this.$w.find(".filter-dashboard-items"));
 
 		//adjust width for horizontal scrolling
-		var width = 160+(me.stats.length)*180+30
+		var width = (me.stats.length)*180+30
 		this.$w.find(".filter-dashboard-items").css("width",width);
 	},
 	reload_stats: function(){
@@ -114,8 +116,8 @@ frappe.ui.FilterList = Class.extend({
 			sum: sum,
 			label: __(field.label)
 		};
-
-		this.$w.find(".filter-stat[data-name='"+__(field.label)+"']").html(frappe.render_template("filter_dash_stats", context)).on("click", ".filter-stat-link", function() {
+		var dashitem = this.$w.find(".filter-stat[data-name='" + __(field.label) + "']")
+		dashitem.html(frappe.render_template("filter_dash_stats", context)).on("click", ".filter-stat-link", function() {
 				var fieldname = $(this).attr('data-field');
 				var label = $(this).attr('data-label');
 				if (df && df.fieldtype=='Check') {
@@ -128,6 +130,33 @@ frappe.ui.FilterList = Class.extend({
 				}
 				return false;
 			})
+		if (stat.length>5) {
+			//list for autocomplete
+			var autolist = []
+			for (var i = 0; i < stat.length; i++) {
+				autolist.push({label: stat[i][0], value: field.name});
+			}
+
+			dashitem.parent().find(".search-dropdown").removeClass("hide").on("shown.bs.dropdown", function (event) {
+				$(this).find(".search-dashboard").focus();
+				$(this).find(".search-dashboard").val("")
+			})
+			dashitem.parent().find(".search-dashboard").autocomplete({
+				source: autolist,
+				select: function (ev, ui) {
+					if (ui.item) {
+						if (df && df.fieldtype == 'Check') {
+							var noduplicate = true
+						}
+						if (ui.item.label == "No Data") {
+							me.listobj.set_filter(ui.item.value, '', false, noduplicate);
+						} else {
+							me.listobj.set_filter(ui.item.value, ui.item.label, false, noduplicate);
+						}
+					}
+				}
+			})
+		}
 	},
 	set_events: function() {
 		var me = this;
@@ -552,7 +581,7 @@ frappe.ui.Filter = Class.extend({
 				title="'+__("Remove Filter")+'">\
 				<i class="icon-remove text-muted"></i>\
 			</button></div>')
-			.insertAfter(this.flist.$w.find(".set-filters .show-filter-dashboard"));
+			.insertAfter(this.flist.$w.find(".set-filters  .clear-filter"));
 
 		this.set_filter_button_text();
 
