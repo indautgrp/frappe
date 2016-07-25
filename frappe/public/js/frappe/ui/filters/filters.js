@@ -27,11 +27,11 @@ frappe.ui.FilterList = Class.extend({
 			}
 		});
 
-		me.stats = me.stats.concat([{name:'docstatus',label:'Document Status',type:'Data'},
-				{name:'creation',label:'Created On',type:'Datetime'},
+		me.stats = me.stats.concat([{name:'creation',label:'Created On',type:'Datetime'},
 					{name:'modified',label:'Last Modified On',type:'Datetime'},
 					{name:'owner',label:'Created By',type:'Data'},
-					{name:'modified_by',label:'Last Modified By',type:'Data'}]);
+					{name:'modified_by',label:'Last Modified By',type:'Data'},
+					{name:'docstatus',label:'Document Status',type:'Data'}]);
 		$.each(me.stats, function (i, v) {
 			me.render_dash_headers(v);
 		});
