@@ -306,7 +306,7 @@ frappe.ui.Listing = Class.extend({
 				return false
 
 			} else if(no_duplicate) {
-				filter.set_values(this.doctype, fieldname, "", label);
+				filter.set_values(this.doctype, fieldname, "=", label);
 			} else {
 				// second filter set for this field
 				if(fieldname=='_user_tags' || fieldname=="_liked_by")  {

@@ -135,7 +135,7 @@ frappe.ui.FilterList = Class.extend({
 		dashitem.html(frappe.render_template("filter_dash_stats", context)).on("click", ".filter-stat-link", function() {
 				var fieldname = $(this).attr('data-field');
 				var label = $(this).attr('data-label');
-				if (df && df.fieldtype=='Check') {
+				if ((df && df.fieldtype=='Check' )|| field.name=="docstatus") {
 					var noduplicate = true
 				}
 				if (label=="No Data"){
