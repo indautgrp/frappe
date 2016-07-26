@@ -98,20 +98,28 @@ frappe.ui.FilterList = Class.extend({
 		stat = type[0].indexOf("-alt")>0? stat.reverse():stat;
 
 		//check formatting
+		var options = []
 		var df = frappe.meta.has_field(me.doctype,field.name)
+		var labels =[]
 		if(df && df.fieldtype=='Check') {
-			var options = [{value: 0, label: 'No'},
+			options = [{value: 0, label: 'No'},
 				{value: 1, label: 'Yes'}]
 		}else if(field.name=="docstatus") {
-			var options = [{value: 0, label: "Draft"},
+			labels.length = stat.length
+			options = [{value: 0, label: "Draft"},
 							{value: 1, label: "Submitted"},
 							{value: 2, label: "Cancelled"}]
 		}
-		if(options) {
+
+		if(options.length>0) {
 			for (i in stat) {
 				for (o in options) {
 					if (stat[i][0] == options[o].value) {
-						stat[i][0] = options[o].label
+						if (field.name=="docstatus") {
+							labels[i] = options[o].label
+						}else{
+							stat[i][0] = options[o].label
+						}
 					}
 				}
 			}
@@ -120,13 +128,14 @@ frappe.ui.FilterList = Class.extend({
 			field: field.name,
 			stat: stat,
 			sum: sum,
-			label: __(field.label)
+			label: __(field.label),
+			labels:labels
 		};
 		var dashitem = this.$w.find(".filter-stat[data-name='" + __(field.label) + "']")
 		dashitem.html(frappe.render_template("filter_dash_stats", context)).on("click", ".filter-stat-link", function() {
 				var fieldname = $(this).attr('data-field');
 				var label = $(this).attr('data-label');
-				if (df && df.fieldtype=='Check') {
+				if ((df && df.fieldtype=='Check' )|| field.name=="docstatus") {
 					var noduplicate = true
 				}
 				if (label=="No Data"){
