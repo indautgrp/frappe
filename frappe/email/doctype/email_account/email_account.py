@@ -12,7 +12,7 @@ from frappe.utils import validate_email_add, cint, get_datetime, DATE_FORMAT, st
 from frappe.utils.user import is_system_user
 from frappe.utils.jinja import render_template
 from frappe.email.smtp import SMTPServer
-from frappe.email.receive import EmailServer, Email
+from frappe.email.receive import EmailServer, Email, get_unique_id
 from poplib import error_proto
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
@@ -139,7 +139,8 @@ class EmailAccount(Document):
 			"username": getattr(self, "login_id", None) or self.email_id,
 			"password": self.password,
 			"use_imap": self.use_imap,
-			"uid_validity":self.uid_validity
+			"uid_validity":self.uid_validity,
+			"uidnext":self.uidnext
 		}
 
 		if not args.get("host"):
@@ -213,27 +214,30 @@ class EmailAccount(Document):
 
 			exceptions = []
 
-			for raw,uid,seen in incoming_mails:
+			for msg in incoming_mails:
 				try:
 
-					communication = self.insert_communication(raw,uid,seen)
+					communication = self.insert_communication(msg)
 					#self.notify_update()
 
 				except SentEmailInInbox,e:
 					frappe.db.rollback()
 					make_error_snapshot(e)
-					self.handle_bad_emails(email_server, uid, raw,"sent email in inbox")
+					if self.use_imap:
+						self.handle_bad_emails(email_server, msg[1], msg[0],"sent email in inbox")
 
 
 				except Exception, e:
 					frappe.db.rollback()
 					make_error_snapshot(e)
-					self.handle_bad_emails(email_server, uid, raw,frappe.get_traceback())
+					if self.use_imap:
+						self.handle_bad_emails(email_server, msg[1], msg[0],frappe.get_traceback())
 					exceptions.append(frappe.get_traceback())
 
 				else:
 					frappe.db.commit()
 					attachments = [d.file_name for d in communication._attachments]
+
 					if self.no_remaining == 0:
  						if communication.reference_doctype:
  							if not frappe.db.get_value("Communication", communication.message_id, "message_id") and not communication.unread_notification_sent:
@@ -244,7 +248,8 @@ class EmailAccount(Document):
 				folder = frappe.get_doc("File", 'Home/Attachments')
 				folder.save()
 			except:
-				exceptions.append(frappe.get_traceback())
+				print "file attachment bug"
+				#exceptions.append(frappe.get_traceback())
 
 			#notify if user is linked to account
 			if len(incoming_mails)>0:
@@ -261,6 +266,8 @@ class EmailAccount(Document):
 			import email
 			try:
 				mail = email.message_from_string(raw)
+
+				unique_id = get_unique_id(mail)
 				message_id = mail.__getitem__('Message-ID')
 			except Exception:
 				message_id = "can't be parsed"
@@ -270,12 +277,17 @@ class EmailAccount(Document):
 				"email_account": email_server.settings.email_account,
 				"uid": uid,
 				"message_id": message_id,
+				"unique_id":unique_id,
 				"reason":reason
 			})
 			unhandled_email.save();
 			frappe.db.commit();
 
-	def insert_communication(self, raw,uid,seen):
+	def insert_communication(self, msg):
+		if isinstance(msg,list):
+			raw, uid, seen = msg
+		else:
+			raw = msg
 		email = Email(raw)
 
 		if email.from_email == self.email_id and not email.mail.get("Reply-To"):
@@ -303,7 +315,8 @@ class EmailAccount(Document):
 			"message_id":email.message_id,
 			"actualdate":email.date,
 			"has_attachment": 1 if email.attachments else 0,
-			"seen":seen
+			"seen":seen,
+			"unique_id":email.unique_id
 		})
 
 		self.set_thread(communication, email)
@@ -444,7 +457,7 @@ class EmailAccount(Document):
 		if parent:
 			communication.reference_doctype = parent.doctype
 			communication.reference_name = parent.name
-			
+
 		# check if message is notification and disable notifications for this message
 		references =email.mail.get("References")
 		if references:
