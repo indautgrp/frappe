@@ -286,7 +286,8 @@ def flush(from_test=False):
 		except (smtplib.SMTPServerDisconnected,
 				smtplib.SMTPConnectError,
 				smtplib.SMTPHeloError,
-				smtplib.SMTPAuthenticationError):
+				smtplib.SMTPAuthenticationError,
+				frappe.ValidationError):
 
 			# bad connection, retry later
 			frappe.db.sql("""update `tabBulk Email` set status='Not Sent' where name=%s""",
