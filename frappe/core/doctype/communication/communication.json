@@ -1165,7 +1165,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-07-29 14:14:18.996593", 
+ "modified": "2016-08-03 10:55:14.695202", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Communication", 
@@ -1193,7 +1193,7 @@
   }, 
   {
    "amend": 0, 
-   "apply_user_permissions": 1, 
+   "apply_user_permissions": 1,
    "cancel": 0, 
    "create": 1, 
    "delete": 1, 
