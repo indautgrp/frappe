@@ -296,7 +296,8 @@ class EmailAccount(Document):
 			# dont count emails sent by the system get those
 			raise SentEmailInInbox
 		contact = set_customer_supplier(email.from_email,email.To)
-		timeline_hide =  frappe.db.get_value("Communication", {"message_id":email.message_id}, "name")
+		if email.message_id:
+			timeline_hide =  frappe.db.get_value("Communication", {"message_id":email.message_id}, "name")
 			#frappe.db.sql("select name from tabCommunication where message_id =  %(message_id)s limit 1",{"message_id":email.message_id})
 
 		communication = frappe.get_doc({
