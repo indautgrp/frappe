@@ -123,10 +123,10 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.setup_last_edited_communication();
 		this.setup_standard_reply();
 		$(this.dialog.fields_dict.recipients.input).val(this.recipients || "").change();
+		if(this.dialog.fields_dict.sender) {
 		$(this.dialog.fields_dict.sender.input).val(this.sender || "").change();
-		if(this.dialog.fields_dict.subject) {
-			$(this.dialog.fields_dict.subject.input).val(this.subject || "").change();
 		}
+		$(this.dialog.fields_dict.subject.input).val(this.subject || "").change();
 		this.setup_earlier_reply();
 	},
 
