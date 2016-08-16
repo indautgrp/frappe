@@ -177,25 +177,29 @@ class EmailAccount(Document):
 		if not in_receive:
 			if self.use_imap:
 				email_server.imap.logout()
+		if self.no_failed >0:
+			self.db_set("no_failed", 0)
 		return email_server
 
 	def handle_incoming_connect_error(self, description):
 		if test_internet():
-			self.db_set("enable_incoming", 0)
-
-			for user in get_system_managers(only_name=True):
-				try:
-					assign_to.add({
-						'assign_to': user,
-						'doctype': self.doctype,
-						'name': self.name,
-						'description': description,
-						'priority': 'High',
-						'notify': 1
-					})
-				except assign_to.DuplicateToDoError:
-					frappe.message_log.pop()
-					pass
+			self.db_set("no_failed",self.no_failed +1)
+			if self.no_failed > 2:
+				self.db_set("enable_incoming", 0)
+	
+				for user in get_system_managers(only_name=True):
+					try:
+						assign_to.add({
+							'assign_to': user,
+							'doctype': self.doctype,
+							'name': self.name,
+							'description': description,
+							'priority': 'High',
+							'notify': 1
+						})
+					except assign_to.DuplicateToDoError:
+						frappe.message_log.pop()
+						pass
 		else:
 			frappe.cache().set_value("workers:no-internet", True)
 
