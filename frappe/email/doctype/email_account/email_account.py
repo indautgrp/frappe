@@ -59,7 +59,7 @@ class EmailAccount(Document):
 		if not self.awaiting_password and not frappe.local.flags.in_install and not frappe.local.flags.in_patch:
 			if self.enable_incoming:
 				self.get_server()
-
+				self.no_failed = 0
 
 			if self.enable_outgoing:
 				self.check_smtp()
