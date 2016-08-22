@@ -16,7 +16,7 @@ import email.utils
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
 	sender=None, recipients=None, communication_medium="Email", send_email=False,
-	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, cc=None, flags=None):
+	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, cc=None, flags=None,read_receipt=None):
 	"""Make a new communication.
 
 	:param doctype: Reference DocType.
@@ -59,7 +59,8 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"timeline_doctype":contact["timeline_doctype"],
 		"timeline_name":contact["timeline_name"],
 		"timeline_label":contact["timeline_label"],
-		"message_id":email.utils.make_msgid("{0}".format(frappe.local.site))
+		"message_id":email.utils.make_msgid("{0}".format(frappe.local.site)),
+		"read_receipt":read_receipt
 	})
 	comm.insert(ignore_permissions=True)
 
@@ -138,7 +139,8 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 		message_id=doc.message_id,
 		unsubscribe_message=_("Leave this conversation"),
 		bulk=True,
-		communication=doc.name
+		communication=doc.name,
+		read_receipt = doc.read_receipt
 	)
 
 def update_parent_status(doc):
