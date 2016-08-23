@@ -20,7 +20,6 @@ from frappe.desk.form import assign_to
 from frappe.utils.user import get_system_managers
 from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts
 from frappe.utils.error import make_error_snapshot
-from frappe.email import set_customer_supplier
 
 
 
@@ -310,7 +309,6 @@ class EmailAccount(Document):
 			# and we don't want emails sent by us to be pulled back into the system again
 			# dont count emails sent by the system get those
 			raise SentEmailInInbox
-		contact = set_customer_supplier(email.from_email,email.To)
 		
 		communication = frappe.get_doc({
 			"doctype": "Communication",
@@ -323,9 +321,6 @@ class EmailAccount(Document):
 			"cc": email.CC,
 			"email_account": self.name,
 			"communication_medium": "Email",
-			"timeline_doctype":contact["timeline_doctype"],
-			"timeline_name":contact["timeline_name"],
-			"timeline_label":contact["timeline_label"],
 			"uid":uid,
 			"message_id":email.message_id,
 			"actualdate":email.date,
