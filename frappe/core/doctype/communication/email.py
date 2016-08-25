@@ -15,7 +15,7 @@ import email.utils
 
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
-	sender=None, recipients=None, communication_medium="Email", send_email=False,
+	sender=None, sender_full_name=None, recipients=None, communication_medium="Email", send_email=False,
 	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, cc=None, flags=None):
 	"""Make a new communication.
 
@@ -50,6 +50,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"subject": subject,
 		"content": content,
 		"sender": sender,
+		"sender_full_name":sender_full_name,
 		"recipients": recipients,
 		"cc": cc or None,
 		"communication_medium": communication_medium,

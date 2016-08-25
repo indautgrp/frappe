@@ -429,6 +429,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				communication_medium: form_values.communication_medium,
 				sent_or_received: form_values.sent_or_received,
 				sender: form_values.sender,
+				sender_full_name: form_values.sender?frappe.user.full_name():undefined,
 				attachments: selected_attachments,
 				_lang : me.lang_code
 			},
