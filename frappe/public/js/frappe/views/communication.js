@@ -69,6 +69,8 @@ frappe.views.CommunicationComposer = Class.extend({
 				fieldname:"send_email"},
 			{label:__("Send me a copy"), fieldtype:"Check",
 				fieldname:"send_me_a_copy"},
+			{label:__("Send Read Receipt"), fieldtype:"Check",
+				fieldname:"send_read_receipt"},
 			{label:__("Communication Medium"), fieldtype:"Select",
 				options: ["Phone", "Chat", "Email", "SMS", "Visit", "Other"],
 				fieldname:"communication_medium"},
@@ -332,6 +334,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		$(fields.send_email.input).click(function() {
 			$(fields.communication_medium.wrapper).toggle(!!!$(this).prop("checked"));
 			$(fields.sent_or_received.wrapper).toggle(!!!$(this).prop("checked"));
+			$(fields.send_read_receipt.wrapper).toggle($(this).prop("checked"));
 			me.dialog.get_primary_btn().html($(this).prop("checked") ? "Send" : "Add Communication");
 		});
 
@@ -431,7 +434,8 @@ frappe.views.CommunicationComposer = Class.extend({
 				sender: form_values.sender,
 				sender_full_name: form_values.sender?frappe.user.full_name():undefined,
 				attachments: selected_attachments,
-				_lang : me.lang_code
+				_lang : me.lang_code,
+				read_receipt:form_values.send_read_receipt
 			},
 			btn: btn,
 			callback: function(r) {
