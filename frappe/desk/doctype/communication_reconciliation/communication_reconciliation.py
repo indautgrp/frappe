@@ -61,13 +61,14 @@ class CommunicationReconciliation(Document):
 			set reference_doctype = %(ref_doc)s ,reference_name = %(ref_name)s ,status = "Linked"
 			where name = %(name)s or timeline_hide = %(name)s; """,{'ref_doc':changed_list[comm]["reference_doctype"],'ref_name':changed_list[comm]["reference_name"],'name':changed_list[comm]["name"]})
 			
-			dup_list = [changed_list[comm]["name"]]+[x[0] for x in frappe.db.get_values("Communication",{"message_id":changed_list[comm]["name"]},"name")]
-			for name in dup_list:
-				doc = frappe.get_doc("Communication", name)
-				if not doc.timeline_label:
-					doc.timeline_doctype = None
-					doc.timeline_name = None
-					doc.save(ignore_permissions=True)
+			dup_list = [changed_list[comm]["name"]]+frappe.db.get_values("Communication",{"message_id":changed_list[comm]["name"]},["name","timeline_label"])
+			for comm in dup_list:
+				if not comm[1]:
+					doc = frappe.get_doc("Communication", comm[0])
+					if not doc.timeline_label:
+						doc.timeline_doctype = None
+						doc.timeline_name = None
+						doc.save(ignore_permissions=True)
 
 			comment = frappe.get_doc({
 				"doctype": "Communication",
@@ -108,13 +109,14 @@ def relink(name,reference_doctype,reference_name):
 		              {'ref_doc': dt,
 		               'ref_name': dn, 'name': name})
 
-		dup_list = [name] + [x[0] for x in frappe.db.get_values("Communication", {"message_id": name}, "name")]
-		for name in dup_list:
-			doc = frappe.get_doc("Communication", name)
-			if not doc.timeline_label:
-				doc.timeline_doctype = None
-				doc.timeline_name = None
-				doc.save(ignore_permissions=True)
+		dup_list = [name] + frappe.db.get_values("Communication", {"message_id": name}, ["name","timeline_label"])
+		for comm in dup_list:
+			if not comm[1]:
+				doc = frappe.get_doc("Communication", comm[0])
+				if not doc.timeline_label:
+					doc.timeline_doctype = None
+					doc.timeline_name = None
+					doc.save(ignore_permissions=True)
 
 		frappe.get_doc({
 				"doctype": "Communication",
