@@ -24,7 +24,11 @@ frappe.ui.form.Timeline = Class.extend({
 		this.input.keydown("meta+return ctrl+return", function(e) {
 			me.comment_button.trigger("click");
 		});
-
+		this.list.on("click",".comment-header",function() {
+			$(this).parent().find(".timeline-content-show").toggleClass("hide");
+			$(this).find(".expand-icon").toggleClass("octicon-chevron-down octicon-chevron-up")
+		})
+		
 		this.email_button = this.wrapper.find(".btn-new-email")
 			.on("click", function() {
 				new frappe.views.CommunicationComposer({
