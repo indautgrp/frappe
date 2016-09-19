@@ -61,10 +61,10 @@ class CommunicationReconciliation(Document):
 			set reference_doctype = %(ref_doc)s ,reference_name = %(ref_name)s ,status = "Linked"
 			where name = %(name)s or timeline_hide = %(name)s; """,{'ref_doc':changed_list[comm]["reference_doctype"],'ref_name':changed_list[comm]["reference_name"],'name':changed_list[comm]["name"]})
 			
-			dup_list = [changed_list[comm]["name"]]+frappe.db.get_values("Communication",{"message_id":changed_list[comm]["name"]},["name","timeline_label"])
+			dup_list = [{"name": changed_list[comm]["name"],"timeline_label":False}] + frappe.db.get_values("Communication", {"timeline_hide": changed_list[comm]["name"]},["name", "timeline_label"], as_dict=1)
 			for comm in dup_list:
-				if not comm[1]:
-					doc = frappe.get_doc("Communication", comm[0])
+				if not comm["timeline_label"]:
+					doc = frappe.get_doc("Communication", comm["name"])
 					if not doc.timeline_label:
 						doc.timeline_doctype = None
 						doc.timeline_name = None
@@ -109,10 +109,10 @@ def relink(name,reference_doctype,reference_name):
 		              {'ref_doc': dt,
 		               'ref_name': dn, 'name': name})
 
-		dup_list = [name] + frappe.db.get_values("Communication", {"message_id": name}, ["name","timeline_label"])
+		dup_list = [{"name":name,"timeline_label":False}] + frappe.db.get_values("Communication", {"timeline_hide": name}, ["name","timeline_label"],as_dict=1)
 		for comm in dup_list:
-			if not comm[1]:
-				doc = frappe.get_doc("Communication", comm[0])
+			if not comm["timeline_label"]:
+				doc = frappe.get_doc("Communication", comm["name"])
 				if not doc.timeline_label:
 					doc.timeline_doctype = None
 					doc.timeline_name = None
