@@ -139,7 +139,9 @@
 		"public/js/frappe/change_log.html",
 		"public/js/frappe/desk.js",
 		"public/js/frappe/query_string.js",
-
+		
+	  	"public/html/error_object.html", 
+	  	"public/html/error_snapshot.html",
 		"public/js/frappe/ui/charts.js"
 	],
 	"js/d3.min.js": [
