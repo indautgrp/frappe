@@ -47,11 +47,11 @@ class Domain(Document):
 				except Exception:
 					pass
 			try:
-				if not self.smtp_port:
+				if self.use_tls and not self.smtp_port:
 					self.port = 587
-				sess = smtplib.SMTP((self.smtp_server or "").encode('utf-8'),cint(self.port) or None)
+				sess = smtplib.SMTP((self.smtp_server or "").encode('utf-8'), cint(self.smtp_port) or None)
 				sess.quit()
-			except Exception:
+			except Exception as e:
 				frappe.throw("Outgoing email account not correct")
 				return None
 		return
@@ -61,14 +61,19 @@ class Domain(Document):
 		for email_account in frappe.get_all("Email Account",
 		filters={"domain": self.name}):
 
-			email_account = frappe.get_doc("Email Account",
-				email_account.name)
-			email_account.set("email_server",self.email_server)
-			email_account.set("use_imap",self.use_imap)
-			email_account.set("use_ssl",self.use_ssl)
-			email_account.set("use_tls",self.use_tls)
-			email_account.set("attachment_limit",self.attachment_limit)
-			email_account.set("smtp_server",self.smtp_server)
-			email_account.set("smtp_port",self.smtp_port)
-			email_account.save()
+			try:
+				email_account = frappe.get_doc("Email Account",
+					email_account.name)
+				email_account.set("email_server",self.email_server)
+				email_account.set("use_imap",self.use_imap)
+				email_account.set("use_ssl",self.use_ssl)
+				email_account.set("use_tls",self.use_tls)
+				email_account.set("attachment_limit",self.attachment_limit)
+				email_account.set("smtp_server",self.smtp_server)
+				email_account.set("smtp_port",self.smtp_port)
+				email_account.save()
+			except Exception as e:
+				frappe.msgprint(email_account.name)
+				frappe.throw(e)
+				return None
 

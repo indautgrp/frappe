@@ -263,6 +263,7 @@ class EmailServer:
 						break
 					message_list.append([uid, message_id])
 		"""
+		self.imap.select("Inbox")
 		import email
 		#messages = self.imap.uid('fetch', "1:*", '(BODY.PEEK[HEADER.FIELDS (FROM TO ENVELOPE-TO DATE RECEIVED)])')
 		messages = self.imap.uid('fetch', "1:*", '(BODY.PEEK[HEADER])')
