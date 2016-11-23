@@ -231,7 +231,7 @@ class EmailAccount(Document):
 						first = frappe.db.get_value("Communication", {"message_id": communication.message_id},["name"],as_dict=1)
 						if first:
 							if first.name != communication.name:
-								communication.db_set("timeline_hide",first.name,update_modified=False)
+								frappe.db.sql("""update tabCommunication set timeline_hide =%s where name = %s""",(first.name,communication.name),auto_commit=1)
 					
 					if self.no_remaining == '0' and not frappe.local.flags.in_test:
 						if communication.reference_doctype :
