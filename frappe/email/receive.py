@@ -183,7 +183,7 @@ class EmailServer:
 		"""Return list of new mails"""
 		if cint(self.settings.use_imap):
 			self.imap.select("Inbox")
-			if self.settings.no_remaining == '0' and self.settings.uidnext:
+			if self.settings.no_remaining == '0' and self.settings.uidnext and false:
 				if self.settings.uidnext == self.settings.newuidnext:
 					return False
 				else:
