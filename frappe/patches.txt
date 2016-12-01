@@ -123,3 +123,5 @@ frappe.patches.v6_24.sync_desktop_icons
 frappe.patches.v6_24.update_sender_in_communication_for_relinked
 frappe.patches.v6_24.imap_get_unique
 frappe.patches.v6_24.email_hide_duplicate
+
+frappe.patches.v6_24.remove_email_duplicates
