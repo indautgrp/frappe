@@ -123,6 +123,7 @@ _f.Frm.prototype.setup = function() {
 
 _f.Frm.prototype.setup_drag_drop = function() {
 	var me = this;
+	me.attachments = [];
 	$(this.wrapper).on('dragenter dragover', false)
 		.on('drop', function (e) {
 			var dataTransfer = e.originalEvent.dataTransfer;
@@ -143,8 +144,8 @@ _f.Frm.prototype.setup_drag_drop = function() {
 				throw "attach error";
 			}
 
-			frappe.upload.upload_file(dataTransfer.files[0], me.attachments.get_args(), {
-				callback: function(attachment, r) {
+			frappe.upload.multifile_upload(dataTransfer.files, me.attachments.get_args(), {
+				callback: function (attachment, r) {
 					me.attachments.attachment_uploaded(attachment, r);
 				},
 				confirm_is_private: true
