@@ -91,12 +91,13 @@ frappe.listview_settings['File'] = {
 				}
 				e.stopPropagation();
 				e.preventDefault();
-				frappe.upload.upload_file(dataTransfer.files[0], {
-					"folder": doclist.current_folder,
-					"from_form": 1
-				}, {
-					confirm_is_private: 1
-				});
+				
+					frappe.upload.multifile_upload(dataTransfer.files, {
+						"folder": doclist.current_folder,
+						"from_form": 1
+					}, {
+						confirm_is_private: 1
+					});
 			});
 	},
 	add_menu_item_copy: function(doclist){
