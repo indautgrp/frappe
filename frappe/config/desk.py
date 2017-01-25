@@ -14,16 +14,6 @@ def get_data():
 				# },
 				{
 					"type": "doctype",
-					"name": "Newsletter",
-					"description": _("Newsletters to contacts, leads."),
-				},
-				{
-					"type": "doctype",
-					"name": "Email Group",
-					"description": _("Email Group List"),
-				},
-				{
-					"type": "doctype",
 					"name": "ToDo",
 					"label": _("To Do"),
 					"description": _("Documents assigned to you and by you."),
@@ -57,6 +47,21 @@ def get_data():
 					"label": _("Activity"),
 					"name": "activity",
 					"description": _("Activity log of all users."),
+				},
+			]
+		},
+		{
+			"label": _("Newsletter"),
+			"items": [
+				{
+					"type": "doctype",
+					"name": "Newsletter",
+					"description": _("Newsletters to contacts, leads."),
+				},
+				{
+					"type": "doctype",
+					"name": "Email Group",
+					"description": _("Email Group List"),
 				},
 			]
 		}
