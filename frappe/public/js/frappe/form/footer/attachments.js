@@ -157,7 +157,8 @@ frappe.ui.form.Attachments = Class.extend({
 			"args": me.get_args(),
 			"callback": function(attachment, r) { me.attachment_uploaded(attachment, r) },
 			"max_width": me.frm.cscript ? me.frm.cscript.attachment_max_width : null,
-			"max_height": me.frm.cscript ? me.frm.cscript.attachment_max_height : null
+			"max_height": me.frm.cscript ? me.frm.cscript.attachment_max_height : null,
+			"allow_multiple": true
 		});
 	},
 	get_args: function() {
@@ -259,6 +260,7 @@ frappe.ui.get_upload_dialog = function(opts){
 		btn: btn,
 		max_width: opts.max_width,
 		max_height: opts.max_height,
+		allow_multiple: opts.allow_multiple
 	});
 
 	return dialog;
