@@ -43,6 +43,7 @@ def upload():
 			_("Added {0}").format("<a href='{file_url}' target='_blank'>{file_name}</a>{icon}".format(**{
 				"icon": ' <i class="icon icon-lock text-warning"></i>' if filedata.is_private else "",
 				"file_url": filedata.file_url.replace("#", "%23") if filedata.file_name else filedata.file_url,
+				"is_private": filedata.is_private,
 				"file_name": filedata.file_name or filedata.file_url
 			})))
 
@@ -50,6 +51,7 @@ def upload():
 		"name": filedata.name,
 		"file_name": filedata.file_name,
 		"file_url": filedata.file_url,
+		"is_private":filedata.is_private,
 		"comment": comment.as_dict() if comment else {}
 	}
 

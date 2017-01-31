@@ -181,7 +181,8 @@ frappe.listview_settings['File'] = {
 				},
 				callback: function() {
 					doclist.refresh();
-				}
+				},
+		    allow_multiple : true
 			});
 		}, "octicon octicon-plus");
 	},

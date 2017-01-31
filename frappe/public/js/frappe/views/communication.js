@@ -322,14 +322,16 @@ frappe.views.CommunicationComposer = Class.extend({
 					me.frm.attachments.attachment_uploaded(attachment, r)
 				},
 				"max_width": me.frm.cscript ? me.frm.cscript.attachment_max_width : null,
-				"max_height": me.frm.cscript ? me.frm.cscript.attachment_max_height : null
+				"max_height": me.frm.cscript ? me.frm.cscript.attachment_max_height : null,
+				"allow_multiple": true
 			}:
 			{
-			"args": {from_form: 1,folder:"Home/Attachments"},
-			"callback": function(attachment, r) { me.attachments.push(attachment)},
-			"max_width": null,
-			"max_height": null
-		});
+				"args": {from_form: 1,folder:"Home/Attachments"},
+				"callback": function(attachment, r) { me.attachments.push(attachment)},
+				"max_width": null,
+				"max_height": null,
+				"allow_multiple": true
+			});
 		})
 		me.render_attach()
 		
