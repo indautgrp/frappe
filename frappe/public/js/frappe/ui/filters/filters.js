@@ -14,9 +14,18 @@ frappe.ui.FilterList = Class.extend({
 		var me = this;
 		$(frappe.render_template("filter_dash", {})).appendTo(this.wrapper.find('.show_filters'));
 		//show filter dashboard
-		this.wrapper.find('.show-filter-dashboard').click(function() {
-			$(this).closest('.show_filters').find('.dashboard-box').toggle();
-			$(this).prop('title',($(this).prop('title')===__("Hide Standard Filters"))?__("Show Standard Filters") : __("Hide Standard Filters"))
+		this.filters_visible = false;
+		this.show_filter_button = this.wrapper.find('.show-filter-dashboard');
+		me.filter_list_wrapper = $(me.wrapper).find('.dashboard-box');
+		this.show_filter_button.click(function() {
+			if(!me.filters_visible) {
+				me.show_filter_list();
+			} else {
+				me.hide_filter_list();
+			}
+			if (!me.loaded_stats && me.filters_visible){
+				me.reload_stats()
+			}
 		});
 		//add stats
 		$.each(frappe.meta.docfield_map[this.doctype], function(i,d) {
@@ -35,7 +44,16 @@ frappe.ui.FilterList = Class.extend({
 		$.each(me.stats, function (i, v) {
 			me.render_dash_headers(v);
 		});
-		me.reload_stats()
+	},
+	show_filter_list: function(){
+		$(this.filter_list_wrapper).toggle(true);
+		this.show_filter_button.prop('title',__("Hide Filters"));
+		this.filters_visible = true;
+	},
+	hide_filter_list: function(){
+		$(this.filter_list_wrapper).toggle(false);
+		this.show_filter_button.prop('title',__("Show Filters"));
+		this.filters_visible = false;
 	},
 	render_dash_headers: function(field){
 		var me = this;
@@ -52,16 +70,18 @@ frappe.ui.FilterList = Class.extend({
 		this.wrapper.find(".filter-dashboard-items").css("width",width);
 	},
 	reload_stats: function(){
-		if(this.fresh ) {
+		var me = this
+		if(this.fresh || this.filters_visible == false) {
 			return;
 		}
+		$(me.wrapper).find(".filter-loading").toggle(true)
 		// set a fresh so that multiple refreshes do not happen
 		// at the same time.
 		this.fresh = true;
 		setTimeout(function() {
 			me.fresh = false;
 		}, 1000);
-
+		this.loaded_stats = true
 		//get stats
 		var me = this
 		return frappe.call({
@@ -78,6 +98,7 @@ frappe.ui.FilterList = Class.extend({
 				$.each(me.stats, function (i, v) {
 						me.render_filters(v, (r.message|| {})[v.name]);
 				});
+				$(me.wrapper).find(".filter-loading").toggle(false)
 			}
 		});
 	},
@@ -354,6 +375,14 @@ frappe.ui.FilterList = Class.extend({
 			if(this.filters[i].field && this.filters[i].field.df.fieldname==fieldname)
 				return this.filters[i];
 		}
+	},
+	remove_filter: function(fieldname, dont_run) {
+		for(var i in this.filters) {
+			if(this.filters[i].field && this.filters[i].field.df.fieldname==fieldname)
+				this.filters[i].remove(dont_run);
+				return true;
+		}
+		return false;
 	}
 });
 
