@@ -19,7 +19,7 @@ class EmailLimitCrossedError(frappe.ValidationError): pass
 def send(recipients=None, sender=None, subject=None, message=None, reference_doctype=None,
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, reply_to=None, cc=(), show_as_cc=(), message_id=None, in_reply_to=None, send_after=None,
-		expose_recipients=False, send_priority=1, communication=None, read_receipt=None):
+		expose_recipients=False, send_priority=1, communication=None, read_receipt=None, is_notification=False):
 	"""Add email to sending queue (Email Queue)
 
 	:param recipients: List of recipients.
@@ -104,11 +104,11 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 
 		# add to queue
 		add(email, sender, subject, email_content, email_text_context, reference_doctype,
-			reference_name, attachments, reply_to, cc, message_id, in_reply_to, send_after, send_priority, email_account=email_account, communication=communication, read_receipt=read_receipt)
+			reference_name, attachments, reply_to, cc, message_id, in_reply_to, send_after, send_priority, email_account=email_account, communication=communication, read_receipt=read_receipt, is_notification = is_notification)
 
 def add(email, sender, subject, formatted, text_content=None,
 	reference_doctype=None, reference_name=None, attachments=None, reply_to=None,
-	cc=(), message_id=None, in_reply_to=None, send_after=None, send_priority=1, email_account=None, communication=None, read_receipt=None):
+	cc=(), message_id=None, in_reply_to=None, send_after=None, send_priority=1, email_account=None, communication=None, read_receipt=None, is_notification = False):
 	"""Add to Email Queue"""
 	e = frappe.new_doc('Email Queue')
 	e.recipient = email
@@ -118,7 +118,7 @@ def add(email, sender, subject, formatted, text_content=None,
 		mail = get_email(email, sender=sender, formatted=formatted, subject=subject,
 			text_content=text_content, attachments=attachments, reply_to=reply_to, cc=cc, email_account=email_account)
 
-		mail.set_message_id(message_id)
+		mail.set_message_id(message_id, is_notification)
 		if read_receipt:
 			mail.msg_root["Disposition-Notification-To"] = sender
 		if in_reply_to:

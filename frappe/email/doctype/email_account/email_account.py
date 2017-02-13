@@ -63,7 +63,8 @@ class EmailAccount(Document):
 				if self.enable_outgoing:
 					self.check_smtp()
 			else:
-				frappe.throw(_("Password is required or select Awaiting Password"))
+				if self.enable_incoming or self.enable_outgoing:
+					frappe.throw(_("Password is required or select Awaiting Password"))
 
 		if self.notify_if_unreplied:
 			if not self.send_notification_to:
@@ -468,9 +469,9 @@ class EmailAccount(Document):
 				communication.reference_name = parent.name
 
 		# check if message is notification and disable notifications for this message
-		references =email.mail.get("References")
-		if references:
-			if "notification" in references:
+		isnotification = email.mail.get("isnotification")
+		if isnotification:
+			if "notification" in isnotification:
 				communication.unread_notification_sent = 1
 
 	def send_auto_reply(self, communication, email):

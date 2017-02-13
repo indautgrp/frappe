@@ -143,7 +143,8 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 		unsubscribe_message=_("Leave this conversation"),
 		delayed=True,
 		communication=doc.name,
-		read_receipt = doc.read_receipt
+		read_receipt=doc.read_receipt,
+		is_notification=True if doc.sent_or_received =="Received" else False
 	)
 
 def update_parent_status(doc):
@@ -413,8 +414,6 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 		for i in xrange(3):
 			try:
 				communication = frappe.get_doc("Communication", communication_name)
-				if communication.sent_or_received == "Received":
-					communication.message_id = None
 				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments,
 					recipients=recipients, cc=cc)
 

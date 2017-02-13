@@ -360,7 +360,7 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
 		cc=(), show_as_cc=(), message_id=None, in_reply_to=None, send_after=None, expose_recipients=False,
-		send_priority=1, communication=None, retry=1, read_receipt=None):
+		send_priority=1, communication=None, retry=1, read_receipt=None, is_notification=False):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -391,17 +391,17 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 			reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
 			unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
 			attachments=attachments, reply_to=reply_to, cc=cc, show_as_cc=show_as_cc, message_id=message_id, in_reply_to=in_reply_to,
-			send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority, communication=communication, read_receipt=read_receipt)
+			send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority, communication=communication, read_receipt=read_receipt, is_notification=is_notification)
 	else:
 		import frappe.email
 		if as_markdown:
 			frappe.email.sendmail_md(recipients, sender=sender,
 				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
-				cc=cc, message_id=message_id, in_reply_to=in_reply_to, retry=retry)
+				cc=cc, message_id=message_id, in_reply_to=in_reply_to, retry=retry, is_notification=is_notification)
 		else:
 			frappe.email.sendmail(recipients, sender=sender,
 				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to,
-				cc=cc, message_id=message_id, in_reply_to=in_reply_to, retry=retry, read_receipt=read_receipt)
+				cc=cc, message_id=message_id, in_reply_to=in_reply_to, retry=retry, read_receipt=read_receipt, is_notification=is_notification)
 
 whitelisted = []
 guest_methods = []
