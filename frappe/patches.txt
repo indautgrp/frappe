@@ -151,4 +151,5 @@ frappe.patches.v7_1.disabled_print_settings_for_custom_print_format
 frappe.patches.v8_0.communication_has_attachment
 execute:frappe.db.sql("update tabCommunication SET docstatus = 0 where docstatus =2 or docstatus = 1")
 execute:frappe.db.sql("update tabCommunication set communication_date = if(actualdate,actualdate,creation) where time(communication_date) = 0 or actualdate is not null")
+execute:frappe.db.sql("update tabCommunication set delivery_status = '' where communication_type = 'Communication' and sent_or_received = 'Received' and delivery_status !=''")
 execute:frappe.rename_doc("DocType", "Domain", "Email Domain")
