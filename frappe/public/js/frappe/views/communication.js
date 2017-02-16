@@ -551,8 +551,7 @@ frappe.views.CommunicationComposer = Class.extend({
 						},
 						quiet: true,
 						callback: function(r) {
-							response($.ui.autocomplete.filter(
-								r.message || [], extractLast(request.term)));
+							response(r.message);
 						}
 					});
 				},
