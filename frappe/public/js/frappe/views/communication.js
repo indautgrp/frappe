@@ -108,7 +108,12 @@ frappe.views.CommunicationComposer = Class.extend({
 		$(this.dialog.fields_dict.sender.input).val(this.sender || "").change();
 		}
 		$(this.dialog.fields_dict.subject.input).val(this.subject || "").change();
-		this.setup_earlier_reply();
+
+		if (this.content){
+			$(this.dialog.fields_dict.content.set_input(this.content || ""))
+		}else{
+			this.setup_earlier_reply();
+		}
 	},
 
 	setup_subject_and_recipients: function() {
