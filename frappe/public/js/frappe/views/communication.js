@@ -96,7 +96,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 	prepare: function() {
 		this.setup_subject_and_recipients();
-		this.setup_print_language()
+		this.setup_print_language();
 		this.setup_print();
 		this.setup_attach();
 		this.setup_email();
@@ -108,6 +108,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		$(this.dialog.fields_dict.sender.input).val(this.sender || "").change();
 		}
 		$(this.dialog.fields_dict.subject.input).val(this.subject || "").change();
+		$(this.dialog.fields_dict.cc.input).val(this.cc || "").change();
 
 		if (this.content){
 			$(this.dialog.fields_dict.content.set_input(this.content || ""))
