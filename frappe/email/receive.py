@@ -778,7 +778,7 @@ class Email:
 
 		if fcontent:
 			content_type = part.get_content_type()
-			fname = part.get_filename()
+			fname = part.get_filename().replace('\n', ' ').replace('\r', '')
 			if fname:
 				try:
 					fname = cstr(decode_header(fname)[0][0])
