@@ -2,7 +2,7 @@ function get_url_arg(name) {
 	return get_query_params()[name] || "";
 }
 
-function get_query_params(query_string) {
+function get_query_params(query_string,force_lower_keys) {
 	var query_params = {};
 	if (!query_string) {
 		query_string = location.search.substring(1);
@@ -14,6 +14,9 @@ function get_query_params(query_string) {
 		var key = pair[0];
 		if (!key) {
 			continue;
+		}
+		if (force_lower_keys){
+			key = key.toLowerCase()
 		}
 
 		var value = pair[1];
