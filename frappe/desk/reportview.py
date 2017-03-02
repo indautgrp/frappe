@@ -8,6 +8,7 @@ import frappe, json
 import frappe.permissions
 from frappe.model.db_query import DatabaseQuery
 from frappe import _
+from frappe.model.utils.list_settings import get_list_settings, update_list_settings
 
 @frappe.whitelist()
 def get():
@@ -177,33 +178,100 @@ def get_stats(stats, doctype, filters=[]):
 	return stats
 
 @frappe.whitelist()
-def get_dash(stats, doctype, filters=[]):
+def get_dash(stats, doctype, filters=[], list_settings={}):
 	"""get tag info"""
 	import json
 	tags = json.loads(stats)
+	if list_settings:
+		list_settings = frappe._dict(json.loads(list_settings))
 	if filters:
 		filters = json.loads(filters)
-	stats = {}
 
+	filters = add_age_to_filter(filters, doctype, list_settings.dashboard_age_fieldname, list_settings.dashboard_age_value)
+	# process out columns 
+	column_list = []
 	columns = frappe.db.get_table_columns(doctype)
 	for tag in tags:
-		if not tag["name"] in columns: continue
-		tagcount = []
-		if tag["type"] not in ['Date', 'Datetime']:
-			tagcount = execute(doctype, fields=[tag["name"], "count(*)"],
-				filters = filters + ["ifnull(`%s`,'')!=''" % tag["name"]], group_by = tag["name"], as_list = True)
+		if tag["name"] in columns and tag["type"] not in ['Date', 'Datetime']:
+			column_list.append({"name":tag["name"], "type":tag["type"]})
+	stats = {}
 
-		if tag["type"] not in ['Check','Select','Date','Datetime']:
-			stats[tag["name"]] = list(tagcount)
-			if stats[tag["name"]]:
-				data =["No Data",execute(doctype, fields=[tag["name"], "count(*)"], filters=filters + ["({0} = '' or {0} is null)".format(tag["name"])],  as_list=True)[0][1]]
-				if data and data[1]!=0:
-
-					stats[tag["name"]].append(data)
+	if filters:
+		conditions = []
+		DatabaseQuery(doctype).build_filter_conditions(filters, conditions)
+		if conditions:
+			conditions = ' where ' + ' and '.join(conditions)
 		else:
-			stats[tag["name"]] = tagcount
+			conditions = ""
+	
+		frappe.db.sql("""CREATE temporary TABLE tempfiltered ENGINE=myisam as
+			(select {0} from `tab{1}` 
+	            {2}
+				order by modified desc);
+		""".format(", ".join([x["name"] for x in column_list]), doctype, conditions))
+	
+	for column in column_list:
+		if filters:
+			tagcount = frappe.db.sql("""select {0}, count(*) from tempfiltered
+			where ifnull({0},'')!='' group by {0}""".format(column["name"]),as_list=1)
+		else:
+			tagcount = frappe.get_list(doctype, 
+				fields=[column["name"], "count(*)"],
+				filters = filters + ["ifnull(`%s`,'')!=''" % column["name"]], 
+				group_by = column["name"], 
+				as_list = True)
 
+		if column["type"] not in ['Check','Select','Int',
+			'Float','Currency','Percent'] and tag['name'] not in ['docstatus']:
+			stats[column["name"]] = list(tagcount)
+			if stats[column["name"]]:
+				if filters:
+					data = ["No Data", frappe.db.sql("""select count(*) 
+						from tempfiltered 
+						where ifnull({0},'')='' """.format(column["name"]), as_list=1)]
+				else:
+					data =["No Data", frappe.get_list(doctype, 
+						fields=[column["name"], "count(*)"], 
+						filters=filters + ["({0} = '' or {0} is null)".format(column["name"])], 
+						as_list=True)[0][1]]
+				if data and data[1]!=0:
+					stats[column["name"]].append(data)
+		else:
+			stats[column["name"]] = tagcount
+	if filters:
+		frappe.db.sql("drop table tempfiltered")
+	update_dashboard_settings(list_settings.list_settings_key or doctype, list_settings.dashboard_age_fieldname, list_settings.dashboard_age_value)
 	return stats
+
+def add_age_to_filter(filters, doctype, field, date):
+	from frappe.utils import now_datetime, add_days, add_months, add_years, get_datetime_str
+
+	if date == "All Time":
+		return filters
+	today = now_datetime()
+	selected_dates = {
+	'Last 7 Days': [add_days(today,-6)],
+	'Last 30 Days': [add_days(today,-29)],
+	'This Month': [add_days(today, -today.day)],
+	'Last Month': [add_months(add_days(today, -today.day),-1), add_days(today, -today.day-1)],
+	'Last 3 Months': [add_months(add_days(today, -today.day),-3)],
+	'This Financial Year': [frappe.db.get_default("year_start_date"),frappe.db.get_default("year_end_date")],
+	'Last Financial Year': [add_years(frappe.db.get_default("year_start_date"), -1),
+		add_years(frappe.db.get_default("year_end_date"), -1)]
+	}[date]
+
+	if len(selected_dates)==2:
+		return filters + [[ doctype, field,">", get_datetime_str(selected_dates[0]) ],
+			[ doctype, field, "<", get_datetime_str(selected_dates[1]) ]]
+	else:
+		return filters + [[ doctype, field, ">", get_datetime_str(selected_dates[0]) ]]
+
+def update_dashboard_settings(doctype, dashboard_age_fieldname, dashboard_age_value):
+	list_settings = json.loads(get_list_settings(doctype) or '{}')
+	list_settings['dashboard_age_fieldname'] = dashboard_age_fieldname
+	list_settings['dashboard_age_value'] = dashboard_age_value
+
+	update_list_settings(doctype, list_settings)
 
 def scrub_user_tags(tagcount):
 	"""rebuild tag list for tags"""

@@ -7,16 +7,17 @@ frappe.ui.FilterList = Class.extend({
 		this.filters = [];
 		this.wrapper = this.$parent;
 		this.stats = [];
+		this.labels = {}; //possibly try merge with label from sort_selector
 		this.make_dash();
 		this.set_events();
 	},
 	make_dash: function() {
 		var me = this;
-		$(frappe.render_template("filter_dash", {})).appendTo(this.wrapper.find('.show_filters'));
+		$(frappe.render_template("filter_dash", me.get_age_filters())).appendTo(this.wrapper.find('.show_filters'));
 		//show filter dashboard
 		this.filters_visible = false;
 		this.show_filter_button = this.wrapper.find('.show-filter-dashboard');
-		me.filter_list_wrapper = $(me.wrapper).find('.dashboard-box');
+		this.filter_list_wrapper = $(this.wrapper).find('.dashboard-box');
 		this.show_filter_button.click(function() {
 			if(!me.filters_visible) {
 				me.show_filter_list();
@@ -27,6 +28,18 @@ frappe.ui.FilterList = Class.extend({
 				me.reload_stats()
 			}
 		});
+		this.wrapper.find('.age_fields').on('click', function () {
+			me.listobj.list_settings.dashboard_age_fieldname = $(this).data("field");
+			me.wrapper.find('.field_label').html($(this).text());
+			me.reload_stats();
+			});
+		
+		this.wrapper.find('.age_dates').on('click', function () {
+			me.listobj.list_settings.dashboard_age_value = $(this).data("date");
+			me.wrapper.find('.date_label').html(__(me.listobj.list_settings.dashboard_age_value));
+			me.reload_stats();
+			});
+		
 		//add stats
 		$.each(frappe.meta.docfield_map[this.doctype], function(i,d) {
 			if (d.in_filter_dash&&frappe.perm.has_perm(me.doctype, d.permlevel, "read")) {
@@ -54,6 +67,42 @@ frappe.ui.FilterList = Class.extend({
 		$(this.filter_list_wrapper).toggle(false);
 		this.show_filter_button.prop('title',__("Show Filters"));
 		this.filters_visible = false;
+	},
+	get_age_filters: function() {
+		var args = {};
+		var me =this;
+		if (!me.listobj.list_settings.dashboard_age_fieldname){ me.listobj.list_settings.dashboard_age_fieldname = "modified"};
+		if (!me.listobj.list_settings.dashboard_age_value){ me.listobj.list_settings.dashboard_age_value = "All Time"};
+		
+		args.dashboard_age_dates = [
+			{label:"All Time"},
+			{label:"Last 7 Days"},
+			{label:"Last 30 Days"},
+			{label:"This Month"},
+			{label:"Last Month"},
+			{label:"Last 3 Months"},
+			{label:"This Financial Year"},
+			{label:"Last Financial Year"}];
+		args.dashboard_age_fields = [{'fieldname': 'modified'},{'fieldname': 'creation'}];
+		
+		$.each(frappe.meta.docfield_map[this.doctype], function (i, v) {
+				if (["Date", "Datetime"].indexOf(v.fieldtype) != -1) {
+					args.dashboard_age_fields.push({fieldname: v.fieldname, label: v.label});
+				}
+			});
+		// add missing labels
+		args.dashboard_age_fields.forEach(function(o) {
+			if(!o.label) {
+				o.label = me.get_label(o.fieldname);
+			}
+		});
+		args.field_label = this.get_label(me.listobj.list_settings.dashboard_age_fieldname);
+		args.date_label = me.listobj.list_settings.dashboard_age_value;
+	return args
+	},
+	get_label: function(fieldname) {
+		return this.labels[fieldname]
+			|| frappe.meta.get_label(this.doctype, fieldname);
 	},
 	render_dash_headers: function(field){
 		var me = this;
@@ -90,7 +139,8 @@ frappe.ui.FilterList = Class.extend({
 			args: {
 				stats: me.stats,
 				doctype: me.doctype,
-				filters:me.default_filters
+				filters:me.default_filters,
+				list_settings: me.listobj.list_settings
 			},
 			callback: function(r) {
 				// This gives a predictable stats order
@@ -153,7 +203,8 @@ frappe.ui.FilterList = Class.extend({
 			labels:labels
 		};
 		var dashitem = this.wrapper.find(".filter-stat[data-name='" + __(field.label) + "']")
-		dashitem.html(frappe.render_template("filter_dash_stats", context)).on("click", ".filter-stat-link", function() {
+		dashitem.html(frappe.render_template("filter_dash_stats", context))
+			.on("click", ".filter-stat-link", function() {
 				var fieldname = $(this).attr('data-field');
 				var label = $(this).attr('data-label');
 				if ((df && df.fieldtype=='Check' )|| field.name=="docstatus") {
