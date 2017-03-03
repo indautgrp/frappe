@@ -135,7 +135,6 @@ def get_labels(fields, doctype):
 @frappe.whitelist()
 def delete_items():
 	"""delete selected items"""
-	import json
 
 	il = json.loads(frappe.form_dict.get('items'))
 	doctype = frappe.form_dict.get('doctype')
@@ -156,7 +155,6 @@ def get_sidebar_stats(stats, doctype, filters=[]):
 @frappe.whitelist()
 def get_stats(stats, doctype, filters=[]):
 	"""get tag info"""
-	import json
 	tags = json.loads(stats)
 	if filters:
 		filters = json.loads(filters)
@@ -180,7 +178,7 @@ def get_stats(stats, doctype, filters=[]):
 @frappe.whitelist()
 def get_dash(stats, doctype, filters=[], list_settings={}):
 	"""get tag info"""
-	import json
+
 	tags = json.loads(stats)
 	if list_settings:
 		list_settings = frappe._dict(json.loads(list_settings))
@@ -226,9 +224,9 @@ def get_dash(stats, doctype, filters=[], list_settings={}):
 			stats[column["name"]] = list(tagcount)
 			if stats[column["name"]]:
 				if filters:
-					data = ["No Data", frappe.db.sql("""select count(*) 
+					data = frappe.db.sql("""select "No Data", count(*) 
 						from tempfiltered 
-						where ifnull({0},'')='' """.format(column["name"]), as_list=1)]
+						where ifnull({0},'')='' """.format(column["name"]), as_list=1)[0]
 				else:
 					data =["No Data", frappe.get_list(doctype, 
 						fields=[column["name"], "count(*)"], 
