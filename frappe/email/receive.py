@@ -11,9 +11,6 @@ from frappe.utils import (extract_email_id, convert_utc_to_user_timezone, now,
 	cint, cstr, strip, markdown)
 from frappe.utils.scheduler import log
 from frappe.utils.file_manager import get_random_filename, save_file, MaxFileSizeReachedError
-from email_reply_parser import EmailReplyParser
-from email.header import decode_header
-from frappe.utils.file_manager import get_random_filename
 
 class EmailSizeExceededError(frappe.ValidationError): pass
 class EmailTimeoutError(frappe.ValidationError): pass
@@ -694,17 +691,16 @@ class Email:
 		_from_email = self.decode_email(self.mail.get("X-Original-From") or self.mail["From"])
 		_reply_to = self.decode_email(self.mail.get("Reply-To"))
 
-
 		if _reply_to and not frappe.db.get_value('Email Account', {"email_id":_reply_to}, 'email_id'):
 			self.from_email = extract_email_id(_reply_to)
 		else:
 			self.from_email = extract_email_id(_from_email)
-		
+
 		if self.from_email:
 			self.from_email = self.from_email.lower()
-			
+
 		self.from_real_name = email.utils.parseaddr(_from_email)[0] if "@" in _from_email else _from_email
-	
+
 	def decode_email(self, email):
 		if not email: return 
 		decoded = ""
@@ -778,9 +774,10 @@ class Email:
 
 		if fcontent:
 			content_type = part.get_content_type()
-			fname = part.get_filename().replace('\n', ' ').replace('\r', '')
+			fname = part.get_filename()
 			if fname:
 				try:
+					fname = fname.replace('\n', ' ').replace('\r', '')
 					fname = cstr(decode_header(fname)[0][0])
 				except:
 					fname = get_random_filename(content_type=content_type)
