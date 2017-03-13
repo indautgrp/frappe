@@ -65,7 +65,7 @@ def get_bootinfo():
 	bootinfo.calendars = sorted(frappe.get_hooks("calendars"))
 	bootinfo.treeviews = frappe.get_hooks("treeviews") or []
 	bootinfo.email_accounts = frappe.get_all('User Emails', fields=['email_account', 'email_id'],
-		filters=dict(parent=frappe.session.user))
+		filters=dict(parent=frappe.session.user), order_by='idx')
 	bootinfo.lang_dict = get_lang_dict()
 
 	return bootinfo
