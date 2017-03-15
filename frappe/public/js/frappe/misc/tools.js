@@ -102,11 +102,7 @@ frappe.slickgrid_tools = {
 
 				// export to csv and get first or second column of the grid indented if it is. e.g: account_name
 				if((i<3) && (typeof(val) == "string" && d['indent'] > 0) && (isNaN((new Date(val)).valueOf()))) {
-					var indent_spaces = "";
-					for (var q=0; q<(d['indent']*8); q++) {
-						indent_spaces += " ";
-					}
-					val = indent_spaces + val;
+					val = " ".repeat(d['indent'] * 8) + val;
 				}
 				
 				row.push(val);
