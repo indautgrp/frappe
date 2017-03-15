@@ -6,12 +6,13 @@ frappe.ui.Chart = Class.extend({
 		$.extend(this.opts, opts);
 		this.show_chart(false);
 
-		if (this.opts.wrapper.find(".show-hide-chart").length == 0) {
-			$('<button class="btn btn-default btn-xs show-hide-chart" ' +
-				'type="button" style="margin: 10px; display: none;">Show chart</button>' +
-				'<div class="chart_area_result" style="padding-bottom: 10px">' +
-				'</div>').appendTo(this.opts.wrapper);
-		}
+		$(this.opts.wrapper).html('<button class="btn btn-default btn-xs show-hide-chart" ' +
+			'type="button" style="margin: 10px;">' +
+			'<span class="chart-btn-text">Show chart </span>' +
+			'<span class="chart-chevron octicon collapse-indicator octicon-chevron-down"' +
+				'style="font-size: inherit;"></span></button>' +
+			'<div class="chart_area_result" style="padding-bottom: 10px">' +
+			'</div>');
 		
 		this.setup_events();
 		
@@ -75,17 +76,18 @@ frappe.ui.Chart = Class.extend({
 		var chart_result = me.opts.wrapper.find(".chart_area_result");
 		
 		chart_result.toggle(false);
-		me.opts.wrapper.find(".show-hide-chart").html(__("Show chart ")).append('<span class="caret"></span>');
-		me.opts.wrapper.find(".show-hide-chart").toggle(true).on("click", function(evt){
-			if ($(this).html().indexOf("Show chart") != -1) {
+		me.opts.wrapper.find(".show-hide-chart").toggle(true).on("click", function(){
+			
+			if ($(this).find(".chart-btn-text").text()==__("Show chart ")) {
 				chart_result.toggle(true);
-				$(this).html(__("Hide ")).append('<span class="dropup"><span class="caret"></span></span>');
+				$(this).find(".chart-btn-text").text(__("Hide "));
+				$(this).find(".chart-chevron").removeClass("octicon-chevron-down").addClass("octicon-chevron-up");
 			}
 			else {
 				chart_result.toggle(false);
-				$(this).html(__("Show chart ")).append('<span class="caret"></span>');
+				$(this).find(".chart-btn-text").text(__("Show chart "));
+				$(this).find(".chart-chevron").removeClass("octicon-chevron-up").addClass("octicon-chevron-down");
 			}
-			evt.stopImmediatePropagation();
 		});
 	}
 });
