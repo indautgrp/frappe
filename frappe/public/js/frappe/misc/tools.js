@@ -77,6 +77,11 @@ frappe.slickgrid_tools = {
 	get_filtered_items: function(dataView) {
 		var data = [];
 		for (var i=0, len=dataView.getLength(); i<len; i++) {
+			// not_quoted to remove single quotes at start and end of total labels
+			var not_quoted = dataView.getItem(i).account_name;
+		    if(not_quoted && not_quoted.charAt(0) == "'" && not_quoted.charAt(not_quoted.length -1) == "'") {
+		      dataView.getItem(i).account_name = not_quoted.substr(1, not_quoted.length-2);
+		    }
 			data.push(dataView.getItem(i));
 		}
 		return data;
@@ -94,6 +99,12 @@ frappe.slickgrid_tools = {
 				if(val===null || val===undefined) {
 					val = "";
 				}
+
+				// export to csv and get first or second column of the grid indented if it is. e.g: account_name
+				if((i<3) && (typeof(val) == "string" && d['indent'] > 0) && (isNaN((new Date(val)).valueOf()))) {
+					val = " ".repeat(d['indent'] * 8) + val;
+				}
+				
 				row.push(val);
 			});
 
