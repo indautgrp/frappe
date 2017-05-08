@@ -322,9 +322,9 @@ def get_cc(doc, recipients=None, fetched_from_email_account=False):
 			#remove unsubscribed thread notify
 			exclude += [d[0] for d in frappe.db.get_all("User", ["name"], {"thread_notify": 0}, as_list=True)]
 
-		if doc.reference_doctype and doc.reference_name:
-			exclude += [d[0] for d in frappe.db.get_all("Email Unsubscribe", ["email"],
-				{"reference_doctype": doc.reference_doctype, "reference_name": doc.reference_name}, as_list=True)]
+		# if doc.reference_doctype and doc.reference_name:
+		# 	exclude += [d[0] for d in frappe.db.get_all("Email Unsubscribe", ["email"],
+		# 		{"reference_doctype": doc.reference_doctype, "reference_name": doc.reference_name}, as_list=True)]
 
 		cc = filter_email_list(doc, cc, exclude, is_cc=True)
 
