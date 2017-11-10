@@ -129,9 +129,9 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 	prepare_to_notify(doc, print_html, print_format, attachments)
 
 	frappe.sendmail(
-		recipients=(recipients or []) + (cc or []),
-		show_as_cc=(cc or []),
-		expose_recipients=True,
+		recipients=(recipients or []),
+		cc=(cc or []),
+		expose_recipients="header",
 		sender=doc.sender,
 		reply_to=doc.incoming_email_account,
 		subject=doc.subject,

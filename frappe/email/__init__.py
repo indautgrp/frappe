@@ -9,16 +9,16 @@ from frappe.email.smtp import send
 from frappe.utils import markdown
 
 def sendmail_md(recipients, sender=None, msg=None, subject=None, attachments=None, content=None,
-	reply_to=None, cc=(), message_id=None, in_reply_to=None, retry=1, is_notification=False):
+	reply_to=None, cc=(), message_id=None, in_reply_to=None, retry=1, expose_recipients=None, is_notification=False):
 	"""send markdown email"""
 	sendmail(recipients, sender, markdown(content or msg), subject, attachments,
-		reply_to=reply_to, cc=cc, retry=retry, is_notification = is_notification)
+		reply_to=reply_to, cc=cc, retry=retry, expose_recipients=expose_recipients, is_notification = is_notification)
 
 def sendmail(recipients, sender='', msg='', subject='[No Subject]', attachments=None, content=None,
-	reply_to=None, cc=(), message_id=None, in_reply_to=None, retry=1, read_receipt=None, is_notification=False):
+	reply_to=None, cc=(), message_id=None, in_reply_to=None, retry=1, read_receipt=None, expose_recipients=None, is_notification=False):
 	"""send an html email as multipart with attachments and all"""
 	mail = get_email(recipients, sender, content or msg, subject, attachments=attachments,
-		reply_to=reply_to, cc=cc)
+		reply_to=reply_to, cc=cc, expose_recipients=expose_recipients)
 	mail.set_message_id(message_id, is_notification)
 	if in_reply_to:
 		mail.set_in_reply_to(in_reply_to)
