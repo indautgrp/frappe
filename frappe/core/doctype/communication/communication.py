@@ -20,7 +20,8 @@ class Communication(Document):
 	no_feed_on_delete = True
 
 	"""Communication represents an external communication like Email."""
-
+	def __setup__(self):
+		self.dont_update_if_missing.append("email_account")
 	def validate(self):
 		if self.reference_doctype and self.reference_name:
 			if not self.reference_owner:
