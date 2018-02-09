@@ -106,10 +106,12 @@ frappe.views.ListView = Class.extend({
 		var name_column = {
 			colspan: this.settings.colwidths && this.settings.colwidths.subject || 6,
 			type: "Subject",
-			title: "Name"
+			title: "Name",
+			fieldname: "name"
 		};
 		if (this.meta.title_field) {
 			name_column.title = frappe.meta.get_docfield(this.doctype, this.meta.title_field).label;
+			name_column.fieldname = frappe.meta.get_docfield(this.doctype, this.meta.title_field).fieldname;
 		}
 		this.columns.push(name_column);
 		this.total_colspans = this.columns[0].colspan;

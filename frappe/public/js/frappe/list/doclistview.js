@@ -134,6 +134,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 
 	init_headers: function() {
+		var me = this;
 		this.page.main.find(".list-headers").empty();
 
 		this.header = this.current_view === 'List' ? "list_item_main_head": "image_view_item_main_head";
@@ -145,7 +146,12 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		});
 
 		this.list_header = $(frappe.render_template("list_item_row_head", { main:main, list:this.listview }))
-			.appendTo(this.page.main.find(".list-headers"));
+			.appendTo(this.page.main.find(".list-headers"))
+			.on("click", ".list-header-filter", function() {
+				var fieldname = $(this).attr('data-name');
+				me.filter_list.add_filter(me.doctype,fieldname);
+				me.filter_list.filters[0].wrapper.find(".filter_field input").focus();
+			});
 
 		this.init_like();
 		this.init_select_all();

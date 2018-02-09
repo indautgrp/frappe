@@ -337,6 +337,13 @@ frappe.ui.FilterList = Class.extend({
 		$.each(this.filters, function(i, f) { f.remove(true); });
 		this.filters = [];
 	},
+	clear_new_filters: function() {
+		$.each(this.filters, function(i, f){
+			if(f.wrapper.hasClass("is-new-filter")){
+				f.remove(true);
+			}
+		});
+	},
 
 	add_filter: function(doctype, fieldname, condition, value, hidden) {
 		if(doctype && fieldname
@@ -352,11 +359,11 @@ frappe.ui.FilterList = Class.extend({
 
 
 		this.wrapper.find('.show_filters').toggle(true);
-		var is_new_filter = arguments.length===0;
+		var is_new_filter = arguments.length<=2;
 
+		// only allow 1 new filter at a time!
 		if (is_new_filter && this.wrapper.find(".is-new-filter:visible").length) {
-			// only allow 1 new filter at a time!
-			return;
+			this.clear_new_filters()
 		}
 
 		var filter = this.push_new_filter(doctype, fieldname, condition, value);
