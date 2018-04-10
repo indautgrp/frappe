@@ -19,6 +19,7 @@
 			</div>
 			{% if(data.communication_type==="Communication" || (data.communication_type==="Comment" && data.comment_type==="Comment")) { %}
 				<div class="comment-header small" style="cursor: pointer;">
+					<div>
                     <i class="{%= data.icon %} icon-fixed-width"></i>
 					<i class="expand-icon octicon octicon-chevron-down"></i>
                     <span title="{%= data.comment_by %}">{%= data.fullname %}</span>
@@ -78,6 +79,8 @@
 						{% } %}
 
 						{% if (data.communication_medium === "Email") { %}
+						<a class="text-muted reply-all-link pull-right timeline-content-show hide"
+                            data-name="{%= data.name %}"> &ndash; {%= __("Reply All") %}</a>
 						<a class="text-muted reply-link pull-right timeline-content-show hide"
                             data-name="{%= data.name %}">{%= __("Reply") %}</a>
 						{% } %}
@@ -91,6 +94,15 @@
 							data-name="{%= data.name %}"></i>
 						<span class="likes-count text-muted">{{ (data._liked_by || []).length }}</span>
 					</span>
+						</div>
+					<div>
+						{% if (data.recipients) { %}
+						<span style="padding-left:10px;">{%= __("To") %}: {%= data.recipients%}</span>
+						{% } %}
+						{% if (data.cc) { %}
+						<span style="padding-left:10px;">{%= __("CC") %}: {%= data.cc%}</span>
+						{% } %}
+					</div>
                 </div>
 				<div class="reply timeline-content-show hide" style="overflow-x:scroll">
         			<div>

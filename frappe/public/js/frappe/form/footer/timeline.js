@@ -139,6 +139,7 @@ frappe.ui.form.Timeline = Class.extend({
 		if(c.communication_type=="Communication" && c.communication_medium==="Email") {
 			this.last_type = c.communication_medium;
 			this.add_reply_btn_event($timeline_item, c);
+			this.add_reply_all_btn_event($timeline_item, c);
 			this.add_relink_btn_event($timeline_item, c);
 		}
 
@@ -163,6 +164,32 @@ frappe.ui.form.Timeline = Class.extend({
 				doc: me.frm.doc,
 				txt: "",
 				frm: me.frm,
+				last_email: last_email
+			});
+		});
+	},
+	add_reply_all_btn_event: function($timeline_item, c) {
+		var me = this;
+		$timeline_item.find(".reply-all-link").on("click", function() {
+			var name = $(this).attr("data-name");
+			var last_email = null;
+			debugger
+
+			// find the email tor reply to
+			me.get_communications().forEach(function(c) {
+				if(c.name==name) {
+					last_email = c;
+					return false;
+				}
+			});
+
+			// make the composer
+			new frappe.views.CommunicationComposer({
+				doc: me.frm.doc,
+				txt: "",
+				frm: me.frm,
+				recipients: (last_email.sender + (last_email.recipients ? ", "+last_email.recipients:"")).replace(frappe.boot.user.email,""),
+				cc: (last_email.cc ? last_email.cc:"").replace(frappe.boot.user.email,""),
 				last_email: last_email
 			});
 		});
@@ -239,7 +266,14 @@ frappe.ui.form.Timeline = Class.extend({
 		if(c.sender && c.sender.indexOf("<")!==-1) {
 			c.sender = c.sender.split("<")[1].split(">")[0];
 		}
-
+		
+		if(c.recipients) {
+			c.recipients = c.recipients.replace(/['"]+/g, '');
+		}
+		if(c.cc) {
+			c.cc = c.cc.replace(/['"]+/g, '');
+		}
+		
 		if(c.sender) {
 			c.user_info = frappe.user_info(c.sender);
 		} else {

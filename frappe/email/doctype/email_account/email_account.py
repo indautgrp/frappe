@@ -228,7 +228,7 @@ class EmailAccount(Document):
 				try:
 					incoming_mails = email_server.get_messages()
 				except Exception as e:
-					frappe.db.sql("update `tabEmail Account` set no_remaining = NULL where name = %s",(self.settings.email_account), auto_commit=1)
+					frappe.db.sql("update `tabEmail Account` set no_remaining = NULL where name = %s",(self.name), auto_commit=1)
 					incoming_mails = []
 
 			for msg in incoming_mails:
