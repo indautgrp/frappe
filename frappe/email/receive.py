@@ -721,7 +721,8 @@ class Email:
 	def process_part(self, part):
 		"""Parse email `part` and set it to `text_content`, `html_content` or `attachments`."""
 		content_type = part.get_content_type()
-		if content_type == 'text/plain':
+		filename = part.get_filename()
+		if content_type == 'text/plain' and not filename:
 			self.text_content += self.get_payload(part)
 
 		elif content_type == 'text/html':
@@ -731,8 +732,34 @@ class Email:
 			# sent by outlook when another email is sent as an attachment to this email
 			self.show_attached_email_headers_in_content(part)
 
-		elif part.get_filename() or 'image' in content_type:
+		elif content_type == 'text/calendar':
+			self.set_calendar_invite(part)
+
+		elif filename or 'image' in content_type:
 			self.get_attachment(part)
+
+	def set_calendar_invite(self, part):
+		from icalendar import Calendar, Event
+		cal = Calendar.from_ical(self.get_payload(part))
+
+		start_format = "%a %b %d %H:%M"
+		end_format = "%H:%M"  # only hour needed for end time
+
+		text_content = ""
+
+		for component in cal.walk('vevent'):
+			event = component.get('summary')
+			description = component.get('description')
+			location = component.get('location')
+			end = component.get('dtend')
+			from frappe.utils.dateutils import datetime_in_user_format
+			start = datetime_in_user_format(component.get('dtstart').dt)
+			total_time = "%s-%s" % (start, end.dt.strftime(end_format))
+
+			text_content += "Calendar Invite\n\n Summary: %s \n\nDescription: %s \n\nLocation: %s \n\nTime: %s \n\n------\n\n " % (event, description, location, total_time)
+
+		self.text_content += text_content
+		self.html_content += markdown(text_content)
 
 	def show_attached_email_headers_in_content(self, part):
 		# get the multipart/alternative message
