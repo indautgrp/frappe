@@ -164,7 +164,8 @@ frappe.ui.form.Timeline = Class.extend({
 				doc: me.frm.doc,
 				txt: "",
 				frm: me.frm,
-				last_email: last_email
+				last_email: last_email,
+				subject: "Re: " + c.subject
 			});
 		});
 	},
@@ -173,7 +174,6 @@ frappe.ui.form.Timeline = Class.extend({
 		$timeline_item.find(".reply-all-link").on("click", function() {
 			var name = $(this).attr("data-name");
 			var last_email = null;
-			debugger
 
 			// find the email tor reply to
 			me.get_communications().forEach(function(c) {
@@ -183,14 +183,23 @@ frappe.ui.form.Timeline = Class.extend({
 				}
 			});
 
+			var recipients = (last_email.sender + (last_email.recipients ? ", "+last_email.recipients:""))
+					.replace(frappe.boot.user.email,"");
+			
+			if (recipients.slice(-2) === ", ")
+			{
+				recipients = recipients.substring(0, recipients.lastIndexOf(", "));
+			}
+			
 			// make the composer
 			new frappe.views.CommunicationComposer({
 				doc: me.frm.doc,
 				txt: "",
 				frm: me.frm,
-				recipients: (last_email.sender + (last_email.recipients ? ", "+last_email.recipients:"")).replace(frappe.boot.user.email,""),
+				recipients: recipients,
 				cc: (last_email.cc ? last_email.cc:"").replace(frappe.boot.user.email,""),
-				last_email: last_email
+				last_email: last_email,
+				subject: "Res: " + c.subject
 			});
 		});
 	},
