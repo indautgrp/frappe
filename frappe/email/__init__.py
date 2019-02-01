@@ -35,26 +35,14 @@ def get_contact_list(txt):
 	"""Returns contacts (from autosuggest)"""
 	txt = txt.replace('%', '')
 
-	def get_users():
-		return filter(None, frappe.db.sql_list('select email from tabUser where email like %s',
-			('%' + txt + '%')))
-	try:
-		out = filter(None, frappe.db.sql_list("""select distinct email_id from `tabContact` 
-			where email_id like %(txt)s or concat(first_name, " ", last_name) like %(txt)s order by
-			if (locate( %(_txt)s, concat(first_name, " ", last_name)), locate( %(_txt)s, concat(first_name, " ", last_name)), 99999),
-			if (locate( %(_txt)s, email_id), locate( %(_txt)s, email_id), 99999)""",
-		        {'txt': "%%%s%%" % frappe.db.escape(txt),
-	            '_txt': txt.replace("%", "")
-		        })
-		)
-		if not out:
-			out = get_users()
-	except Exception, e:
-		if e.args[0]==1146:
-			# no Contact, use User
-			out = get_users()
-		else:
-			raise
+	if len(txt) < 3:
+		return None
+
+	out = filter(None, frappe.db.sql_list("""select email from (select distinct email_id as email, 2 as doctype from `tabContact`
+		where email_id like %(txt)s or concat(first_name, " ", last_name) like %(txt)s
+		union all
+		select email, 1 as doctype from tabUser where email like %(txt)s
+		) T order by doctype, email""", {'txt': "%%%s%%" % frappe.db.escape(txt)}))
 
 	return out
 
