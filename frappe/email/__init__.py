@@ -38,11 +38,22 @@ def get_contact_list(txt):
 	if len(txt) < 3:
 		return None
 
-	out = filter(None, frappe.db.sql_list("""select email from (select distinct email_id as email, 2 as doctype from `tabContact`
+	out = filter(None, frappe.db.sql_list("""select email from (
+		select distinct email_id as email, 2 as doctype,
+		if (locate( %(_txt)s, concat(first_name, " ", last_name)), locate( %(_txt)s, concat(first_name, " ", last_name)), 99999) as locate1,
+		if (locate( %(_txt)s, email_id), locate( %(_txt)s, email_id), 99999) as locate2
+		from `tabContact`
 		where email_id like %(txt)s or concat(first_name, " ", last_name) like %(txt)s
 		union all
-		select email, 1 as doctype from tabUser where email like %(txt)s
-		) T order by doctype, email""", {'txt': "%%%s%%" % frappe.db.escape(txt)}))
+		select distinct email, 1 as doctype,
+		if (locate( %(_txt)s, concat(first_name, " ", last_name)), locate( %(_txt)s, concat(first_name, " ", last_name)), 99999) as locate1,
+		if (locate( %(_txt)s, email), locate( %(_txt)s, email), 99999) as locate2
+		from tabUser where email like %(txt)s or concat(first_name, " ", last_name) like %(txt)s
+		) T order by doctype, locate1, locate2, email""",
+		{
+			'txt': "%%%s%%" % frappe.db.escape(txt),
+			'_txt': txt.replace("%", "")
+		}))
 
 	return out
 
