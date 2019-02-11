@@ -97,6 +97,7 @@
 .print-heading {
 	border-bottom: 1px solid #aaa;
 	margin-bottom: 10px;
+	margin-left: 5px;
 }
 
 .print-heading h2 {
