@@ -21,12 +21,12 @@ redis
 selenium
 babel
 ipython
-html2text
+html2text==2016.9.19
 email_reply_parser
 click
 num2words
 watchdog==0.8.0
-bleach
+bleach==2.1.4
 bleach-whitelist
 Pillow
 beautifulsoup4
