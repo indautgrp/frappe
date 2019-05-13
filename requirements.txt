@@ -30,7 +30,7 @@ bleach==1.4.3
 bleach-whitelist
 Pillow
 beautifulsoup4
-rq
+rq==0.12.0
 schedule
 cryptography
 zxcvbn
